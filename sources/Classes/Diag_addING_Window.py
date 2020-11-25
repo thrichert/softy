@@ -19,13 +19,12 @@ class Diag_addING_Window(QtWidgets.QDialog):
 				alert.exec_()
 			else:
 				#add new IA to db
-				newUser = {"name" : userName.text()}
 				print ("New ING added")
-				data = database.getContent()
-				data["INGs"].append(newUser)
-				database.write(data)
+
+				newIng = ING(userName.text())
+				newIng.save(database)
 				#update QlistView in mainWindow
-				mainWindow.update_ING_tableView(data)
+				mainWindow.update_ING_tableView(database.getContent())
 		else:
 			print('Nop')
 

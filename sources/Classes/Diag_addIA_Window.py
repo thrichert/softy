@@ -21,16 +21,11 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 				alert.exec_()
 			else:
 				#add new IA to db
-				newUser = {"name" : userName.text(), "role" : userRole.currentText()}
 				print ("New IA added")
 
-				data = database.getContent()
-				# add to IA's list
-				data["IAs"].append(newUser)
-				# create specific dictionary for this IA
-				data[userName.text()] = {}
-				database.write(data)
+				newUser = IngAffaire(userName.text(), userRole.currentText())
+				newUser.save(database)
 				#update QlistView in mainWindow
-				mainWindow.update_IA_tableView(data)
+				mainWindow.update_IA_tableView(database.getContent())
 		else:
 			print('Nop')

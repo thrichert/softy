@@ -6,8 +6,8 @@ class DB(object):
 		if not os.path.exists(path):
 			print('create DB')
 			self.data = {
-				"IAs":[],
-				"INGs":[]
+				"IAs": {},
+				"INGs": {}
 			}
 			with open(path, 'w') as f:
 				f.write(json.dumps(self.data, sort_keys=True, indent=4))

@@ -4,6 +4,7 @@ import sys, os, json
 from Classes.DB import DB
 from Classes.Diag_addIA_Window import Diag_addIA_Window
 from Classes.Diag_addING_Window import Diag_addING_Window
+from Classes.IngAffaire import IngAffaire
 
 class MainWindow(QtWidgets.QMainWindow):
 	"""
@@ -75,8 +76,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.IAs_list = self.findChild(QtWidgets.QTableView, "IAsList")
 		self.IAs_list.setModel(self.IAs_model)
 		for colID, IA in enumerate(data["IAs"]):
-			name = QtGui.QStandardItem(IA["name"])
-			role = QtGui.QStandardItem(IA["role"])
+			name = QtGui.QStandardItem(data["IAs"][IA]["name"])
+			role = QtGui.QStandardItem(data["IAs"][IA]["role"])
 			name.setFlags(QtCore.Qt.NoItemFlags)
 			role.setFlags(QtCore.Qt.NoItemFlags)
 			self.IAs_model.setItem(colID, 0, name)
@@ -88,21 +89,36 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.INGs_list = self.findChild(QtWidgets.QTableView, "INGsList")
 		self.INGs_list.setModel(self.INGs_model)
 		for colID, ING in enumerate(data["INGs"]):
-			name = QtGui.QStandardItem(ING["name"])
+			name = QtGui.QStandardItem(data["INGs"][ING]["name"])
 			name.setFlags(QtCore.Qt.NoItemFlags)
 			self.INGs_model.setItem(colID, 0, name)
 
-	def update_activity_tableView(self, data, user, week):
+	def update_activity_tableView(self, data, IA_name, week_year):
 		self.activity_list = self.findChild(QtWidgets.QTableView, "activityList")
+
+		# get IA's ID from his name
+		ia_ID = IngAffaire.getIngAffaireIDfromName(self.selectedIA, self.database)
+		print("ia_ID @ update_activity_tableView", ia_ID)
+
+		ia_data = IngAffaire.getIngAffaireFromID(ia_ID, self.database)
+		ia = IngAffaire(ia_data["name"], ia_data["role"], ia_ID)
+
+		activities = ia.getActivitiesFromWeek(self.database, str(self.currentWeek[0])+"_"+str(self.currentWeek[1]))
+
+		for i in range(self.activity_model.columnCount()):
+			self.activity_model.setItem(0, i, QtGui.QStandardItem(str(activities[i])))
 		self.activity_list.setModel(self.activity_model)
-		#get info from DB
-		info = data[user]
-		print(info)
 
 	def on_activity_IAselected(self):
 		self.selectedIA = self.activity_IAs_list.currentIndex().data()
 		if self.currentWeek != None:
-			self.update_activity_tableView(self.database.getContent(), self.selectedIA, self.currentWeek)
+			self.update_activity_tableView(self.database, self.selectedIA, self.currentWeek)
+
+	def on_calendar_select(self):
+		selectedDay = self.activity_calendar.selectedDate()
+		self.currentWeek = selectedDay.weekNumber()
+		if self.selectedIA != None:
+			self.update_activity_tableView(self.database, self.selectedIA, self.currentWeek)
 
 	def update_activity_IA_list(self, data):
 		#get info from DB
@@ -110,10 +126,10 @@ class MainWindow(QtWidgets.QMainWindow):
 		model = QtGui.QStandardItemModel()
 		self.activity_IAs_list.setModel(model)
 		for ia in data["IAs"]:
-			model.appendRow(QtGui.QStandardItem(ia["name"]))
+			model.appendRow(QtGui.QStandardItem(data["IAs"][ia]["name"]))
 
 	def on_activity_table_dataChange(self, index):
-		print('data changed in activity table @', index.column())
+		#print('data changed in activity table @', index.column())
 		# check user input
 		userInput = self.activity_model.itemFromIndex(index)
 		if not userInput.text().isnumeric():
@@ -122,15 +138,18 @@ class MainWindow(QtWidgets.QMainWindow):
 			alert.setText("error - Input can only be numbers")
 			alert.exec_()
 		else:
-			# save data
-			data = self.database.getContent()
-			activityList = [0 for i in range(0,10)]
-			activityList[index.column()] = userInput.text()
-			data[self.selectedIA][str(self.currentWeek[0])+"_"+str(self.currentWeek[1])] = {"activity": activityList}
-			#database.write(data)
+			# get IA's ID from his name
+			ia_ID = IngAffaire.getIngAffaireIDfromName(self.selectedIA, self.database)
+			print("ia_ID @ on_activity_table_dataChange",ia_ID)
+			ia_data = IngAffaire.getIngAffaireFromID(ia_ID, self.database)
+			ia = IngAffaire(ia_data["name"], ia_data["role"], ia_ID)
+			ia.addAllActivities(ia_data['activities'])
+			l = []
+			for i in range(self.activity_model.columnCount()):
+				if self.activity_model.item(0, i) != None:
+					l.append(str(self.activity_model.item(0, i).text()))
+			ia.addActivity(str(self.currentWeek[0])+"_"+str(self.currentWeek[1]), l)
+			ia.save(self.database)
 
-	def on_calendar_select(self):
-		selectedDay = self.activity_calendar.selectedDate()
-		self.currentWeek = selectedDay.weekNumber()
-		if self.selectedIA != None:
-			self.update_activity_tableView(self.database.getContent(), self.selectedIA, self.currentWeek)
+
+
