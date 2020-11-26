@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>344</width>
-    <height>114</height>
+    <height>211</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,20 +17,91 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>GroupBox</string>
+      <string>New Ingenieur</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <item>
+       <layout class="QFormLayout" name="formLayout">
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="ING_Name"/>
+        </item>
+        <item row="1" column="0">
          <widget class="QLabel" name="label_3">
           <property name="text">
            <string>name</string>
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QLineEdit" name="ING_Name"/>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>entree</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QDateEdit" name="ING_entryDate">
+          <property name="displayFormat">
+           <string>MM/yyyy</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>manager</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QComboBox" name="ING_managerComboList">
+          <item>
+           <property name="text">
+            <string>None</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>state</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QComboBox" name="ING_stateComboList">
+          <item>
+           <property name="text">
+            <string>Without Mission</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>With Mission</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>inter contrat</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>AR</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Client</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="ING_Client"/>
         </item>
        </layout>
       </item>

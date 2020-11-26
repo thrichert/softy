@@ -21,7 +21,6 @@ class IngAffaire(object):
 			self.id = IngAffaire._ids
 		else:
 			self.id = idx
-		print("ID", self.id)
 
 	def addActivity(self, week_year, activity):
 		self.activities[week_year] = activity
@@ -58,8 +57,11 @@ class IngAffaire(object):
 
 	@staticmethod
 	def getIngAffaireIDfromName(name, DB):
+		if name == None:
+			return None
 		content = DB.getContent()
-		return [k for k in content["IAs"].keys() if content["IAs"][k]["name"] == name][0]
+		out =  [k for k in content["IAs"].keys() if content["IAs"][k]["name"] == name]
+		return out[0]
 
 	@staticmethod
 	def getIngAffaireActivitiesFromID(idx, DB):

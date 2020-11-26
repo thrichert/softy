@@ -36,8 +36,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 		# populate user list in QtableViews
-		self.update_IA_tableView(database.getContent())
-		self.update_ING_tableView(database.getContent())
+		self.update_IA_tableView(self.database.getContent())
+		self.update_ING_tableView(self.database.getContent())
 
 		#
 		#	tab : activite
@@ -61,6 +61,42 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.activity_model.setHeaderData(i, QtCore.Qt.Horizontal, h)
 		self.activity_model.insertRow(0)
 		self.activity_model.dataChanged.connect(self.on_activity_table_dataChange)
+
+		#
+		#	tab : Business
+		#
+
+		# setup Business ING Monthly QtableView
+		self.business_ingIO_model = QtGui.QStandardItemModel()
+		self.business_ingIO_model.setColumnCount(4)
+		headers = ["ENTREE", "Total", "SORTIE", "total"]
+		for i, h in enumerate(headers):
+			self.business_ingIO_model.setHeaderData(i, QtCore.Qt.Horizontal, h)
+		self.update_business_ingIO(database.getContent())
+
+
+		# setup Business Mission Monthly QtableView
+		self.business_Mission_model = QtGui.QStandardItemModel()
+		self.business_Mission_model.setColumnCount(4)
+		headers = ["Start", "Total", "Stop", "total"]
+		for i, h in enumerate(headers):
+			self.business_Mission_model.setHeaderData(i, QtCore.Qt.Horizontal, h)
+		self.update_business_Mission(database.getContent())
+
+
+
+		# setup list view model
+		self.INGs_list_model = QtGui.QStandardItemModel()
+		self.INGs_list_model.setColumnCount(1)
+		self.INGs_list_model.setHeaderData(0, QtCore.Qt.Horizontal, "Name")
+
+
+		# populate ING list in QtableView
+		self.business_Ing_list = self.findChild(QtWidgets.QTableView, "business_Ing_list")
+		self.business_Ing_list.clicked.connect(self.on_business_Ingselected)
+		self.update_business_ING_listView(self.database.getContent())
+
+
 
 		# display window
 		self.show()
@@ -98,15 +134,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
 		# get IA's ID from his name
 		ia_ID = IngAffaire.getIngAffaireIDfromName(self.selectedIA, self.database)
-		print("ia_ID @ update_activity_tableView", ia_ID)
-
 		ia_data = IngAffaire.getIngAffaireFromID(ia_ID, self.database)
 		ia = IngAffaire(ia_data["name"], ia_data["role"], ia_ID)
 
 		activities = ia.getActivitiesFromWeek(self.database, str(self.currentWeek[0])+"_"+str(self.currentWeek[1]))
 
 		for i in range(self.activity_model.columnCount()):
-			self.activity_model.setItem(0, i, QtGui.QStandardItem(str(activities[i])))
+			item =  QtGui.QStandardItem(str(activities[i]))
+			item.setTextAlignment(QtCore.Qt.AlignCenter)
+			self.activity_model.setItem(0, i, item)
+
 		self.activity_list.setModel(self.activity_model)
 
 	def on_activity_IAselected(self):
@@ -129,7 +166,6 @@ class MainWindow(QtWidgets.QMainWindow):
 			model.appendRow(QtGui.QStandardItem(data["IAs"][ia]["name"]))
 
 	def on_activity_table_dataChange(self, index):
-		#print('data changed in activity table @', index.column())
 		# check user input
 		userInput = self.activity_model.itemFromIndex(index)
 		if not userInput.text().isnumeric():
@@ -140,7 +176,6 @@ class MainWindow(QtWidgets.QMainWindow):
 		else:
 			# get IA's ID from his name
 			ia_ID = IngAffaire.getIngAffaireIDfromName(self.selectedIA, self.database)
-			print("ia_ID @ on_activity_table_dataChange",ia_ID)
 			ia_data = IngAffaire.getIngAffaireFromID(ia_ID, self.database)
 			ia = IngAffaire(ia_data["name"], ia_data["role"], ia_ID)
 			ia.addAllActivities(ia_data['activities'])
@@ -151,5 +186,19 @@ class MainWindow(QtWidgets.QMainWindow):
 			ia.addActivity(str(self.currentWeek[0])+"_"+str(self.currentWeek[1]), l)
 			ia.save(self.database)
 
+	def on_business_Ingselected(self):
+		self.business_Ing_selected = self.business_Ing_list.currentIndex().data()
 
+	def update_business_ING_listView(self, content):
+		self.business_Ing_list.setModel(self.INGs_list_model)
+		for colID, ING in enumerate(content["INGs"]):
+			name = QtGui.QStandardItem(content["INGs"][ING]["name"])
+			self.INGs_list_model.setItem(colID, 0, name)
 
+	def update_business_ingIO(self, content):
+		self.business_ingIO = self.findChild(QtWidgets.QTableView, "business_ing_IO")
+		self.business_ingIO.setModel(self.business_ingIO_model)
+
+	def update_business_Mission(self, content):
+		self.business_Mission = self.findChild(QtWidgets.QTableView, "business_mission_start_stop")
+		self.business_Mission.setModel(self.business_Mission_model)
