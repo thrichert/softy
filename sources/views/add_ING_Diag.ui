@@ -41,8 +41,18 @@
         </item>
         <item row="2" column="1">
          <widget class="QDateEdit" name="ING_entryDate">
+          <property name="dateTime">
+           <datetime>
+            <hour>0</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <year>2020</year>
+            <month>11</month>
+            <day>1</day>
+           </datetime>
+          </property>
           <property name="displayFormat">
-           <string>MM/yyyy</string>
+           <string>dd/MM/yyyy</string>
           </property>
          </widget>
         </item>

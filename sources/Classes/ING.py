@@ -56,3 +56,16 @@ class ING(object):
 		content = DB.getContent()
 		content["INGs"][str(self.id)] = data
 		DB.write(content)
+
+	@staticmethod
+	def getIngFromID(idx, DB):
+		content = DB.getContent()
+		return content["INGs"][idx]
+
+	@staticmethod
+	def getIngIDfromName(name, DB):
+		if name == None:
+			return None
+		content = DB.getContent()
+		out =  [k for k in content["INGs"].keys() if content["INGs"][k]["name"] == name]
+		return out[0]

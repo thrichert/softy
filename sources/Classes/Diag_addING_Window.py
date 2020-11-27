@@ -39,7 +39,7 @@ class Diag_addING_Window(QtWidgets.QDialog):
 				else:
 					NbrIng = int(max(content["INGs"].keys())) + 1
 				newIng = ING(userName.text(), NbrIng)
-				newIng.setEntryDate(userEntryDate.date().toString("MM.yyyy"))
+				newIng.setEntryDate(userEntryDate.date().toString("dd.MM.yyyy"))
 				#update QlistView in mainWindow
 				mainWindow.update_ING_tableView(database.getContent())
 				mainWindow.update_business_ING_listView(database.getContent())
@@ -52,6 +52,8 @@ class Diag_addING_Window(QtWidgets.QDialog):
 				newIng.setState(userState.currentText())
 				newIng.save(database)
 				database.write(content)
+				mainWindow.update_ING_tableView(content)
+				mainWindow.populate_ing_business_ingIO()
 		else:
 			print('Nop')
 

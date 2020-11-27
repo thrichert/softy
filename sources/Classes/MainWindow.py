@@ -4,7 +4,12 @@ import sys, os, json
 from Classes.DB import DB
 from Classes.Diag_addIA_Window import Diag_addIA_Window
 from Classes.Diag_addING_Window import Diag_addING_Window
+from Classes.Diag_business_ING_startMission import Diag_business_ING_startMission
+from Classes.Diag_business_ING_stopMission import Diag_business_ING_stopMission
+
 from Classes.IngAffaire import IngAffaire
+from Classes.ING import ING
+
 
 class MainWindow(QtWidgets.QMainWindow):
 	"""
@@ -66,26 +71,36 @@ class MainWindow(QtWidgets.QMainWindow):
 		#	tab : Business
 		#
 
-		# setup Business ING Monthly QtableView
+		# get current Month info
+		self.business_current_date_selector = self.findChild(QtWidgets.QDateEdit, "business_current_month_select")
+		self.business_current_date_selector.dateChanged.connect(self.on_business_date_changed)
+		self.business_current_date = self.business_current_date_selector.date()
+
+		# setup pushbutton callback
+		self.ingStartMission = self.findChild(QtWidgets.QPushButton, "ingStartMission")
+		self.ingStartMission.clicked.connect(self.on_business_ingStartMission)
+		self.ingStopMission = self.findChild(QtWidgets.QPushButton, "ingStopMission")
+		self.ingStopMission.clicked.connect(self.on_business_ingStopMission)
+
+		# setup Business Mission & ingenieur Monthly QtableView
+		self.business_Mission_model = QtGui.QStandardItemModel()
 		self.business_ingIO_model = QtGui.QStandardItemModel()
+
+		self.business_Mission_model.setColumnCount(4)
 		self.business_ingIO_model.setColumnCount(4)
-		headers = ["ENTREE", "Total", "SORTIE", "total"]
-		for i, h in enumerate(headers):
+		horizontalHeaders = ["Start", "Total", "Stop", "total"]
+		for i, h in enumerate(horizontalHeaders):
+			self.business_Mission_model.setHeaderData(i, QtCore.Qt.Horizontal, h)
 			self.business_ingIO_model.setHeaderData(i, QtCore.Qt.Horizontal, h)
+
+		verticalHeaderLabels = self.util_getWeeknumbers()
+		self.business_Mission_model.setVerticalHeaderLabels(verticalHeaderLabels)
+		self.business_ingIO_model.setVerticalHeaderLabels(verticalHeaderLabels)
+		self.update_business_Mission(database.getContent())
 		self.update_business_ingIO(database.getContent())
 
 
-		# setup Business Mission Monthly QtableView
-		self.business_Mission_model = QtGui.QStandardItemModel()
-		self.business_Mission_model.setColumnCount(4)
-		headers = ["Start", "Total", "Stop", "total"]
-		for i, h in enumerate(headers):
-			self.business_Mission_model.setHeaderData(i, QtCore.Qt.Horizontal, h)
-		self.update_business_Mission(database.getContent())
-
-
-
-		# setup list view model
+		# setup ING list view model
 		self.INGs_list_model = QtGui.QStandardItemModel()
 		self.INGs_list_model.setColumnCount(1)
 		self.INGs_list_model.setHeaderData(0, QtCore.Qt.Horizontal, "Name")
@@ -188,17 +203,103 @@ class MainWindow(QtWidgets.QMainWindow):
 
 	def on_business_Ingselected(self):
 		self.business_Ing_selected = self.business_Ing_list.currentIndex().data()
+		# check ing state
+		ing_id = ING.getIngIDfromName(self.business_Ing_selected, self.database)
+		content = self.database.getContent()
+		if content['INGs'][ing_id]['state'] == "with Mission":
+			self.ingStopMission.setEnabled(True)
+			self.ingStartMission.setEnabled(False)
+		else:
+			self.ingStartMission.setEnabled(True)
+			self.ingStopMission.setEnabled(False)
 
 	def update_business_ING_listView(self, content):
 		self.business_Ing_list.setModel(self.INGs_list_model)
 		for colID, ING in enumerate(content["INGs"]):
 			name = QtGui.QStandardItem(content["INGs"][ING]["name"])
+			if content["INGs"][ING]["state"] == "with Mission":
+				name.setBackground(QtGui.QBrush(QtCore.Qt.green))
+			else:
+				name.setBackground(QtGui.QBrush(QtCore.Qt.red))
 			self.INGs_list_model.setItem(colID, 0, name)
 
 	def update_business_ingIO(self, content):
 		self.business_ingIO = self.findChild(QtWidgets.QTableView, "business_ing_IO")
+		self.populate_ing_business_ingIO()
 		self.business_ingIO.setModel(self.business_ingIO_model)
+
+	def populate_ing_business_ingIO(self):
+
+		#
+		# BUG !
+		#
+		content = self.database.getContent()
+		for i in range(self.business_ingIO_model.rowCount()):
+			for ing in content['INGs']:
+				entryDate = QtCore.QDate.fromString(content['INGs'][ing]['entryDate'], "dd.MM.yyyy")
+				if self.business_ingIO_model.verticalHeaderItem(i).text() == str(entryDate.weekNumber()[0]):
+					self.business_ingIO_model.clearItemData(self.business_ingIO_model.indexFromItem( self.business_ingIO_model.item(i, 0)))
+
+					# get previous data in cell
+					itemAtWeekNumber = self.business_ingIO_model.item(i, 0)
+					if itemAtWeekNumber != None:
+						cellContentText = itemAtWeekNumber.text() + ", " + content['INGs'][ing]["name"]
+					else:
+						cellContentText = content['INGs'][ing]["name"]
+					# add new
+					newIngItem = QtGui.QStandardItem( + )
+					newIngItem.setBackground(QtGui.QBrush(QtCore.Qt.green))
+					self.business_ingIO_model.setItem(i, 0, newIngItem)
+			cellContent = self.business_ingIO_model.item(i,0)
+			if cellContent != None:
+				print("cellcontent.text()",cellContent.text())
+				totalNewIng = len(cellContent.text().split(','))
+				self.business_ingIO_model.setItem(i, 1,  QtGui.QStandardItem(str(totalNewIng)))
+
 
 	def update_business_Mission(self, content):
 		self.business_Mission = self.findChild(QtWidgets.QTableView, "business_mission_start_stop")
 		self.business_Mission.setModel(self.business_Mission_model)
+
+
+	def on_business_ingStartMission(self):
+		self.diag_business_startMission = Diag_business_ING_startMission("./sources/views/ing_start_mission.ui", self.business_Ing_selected, self.database)
+		self.update_business_ING_listView(self.database.getContent())
+
+	def on_business_ingStopMission(self):
+		self.diag_business_stopMission = Diag_business_ING_stopMission("./sources/views/ing_stop_mission.ui", self.business_Ing_selected, self.database)
+		self.update_business_ING_listView(self.database.getContent())
+
+	def util_getWeeknumbers(self):
+		self.business_current_date = self.business_current_date_selector.date()
+		verticalHeaderLabels = []
+		for i in range (-1, 2):
+			tmpDate = QtCore.QDate(self.business_current_date.year(), self.business_current_date.month() + i, 1)
+			nbrDayInMonth = tmpDate.daysInMonth()
+			weekCount = nbrDayInMonth / 7
+			i = 0
+			while weekCount > 0:
+				if str(tmpDate.weekNumber()[0] + i) not in verticalHeaderLabels:
+					verticalHeaderLabels.append(str(tmpDate.weekNumber()[0] + i))
+				weekCount -= 1
+				i += 1
+
+		return verticalHeaderLabels
+
+	def on_business_date_changed(self):
+		self.business_Mission_model.clear()
+		self.business_ingIO_model.clear()
+
+		self.business_Mission_model.setColumnCount(4)
+		self.business_ingIO_model.setColumnCount(4)
+		horizontalHeaders = ["Start", "Total", "Stop", "total"]
+		for i, h in enumerate(horizontalHeaders):
+			self.business_Mission_model.setHeaderData(i, QtCore.Qt.Horizontal, h)
+			self.business_ingIO_model.setHeaderData(i, QtCore.Qt.Horizontal, h)
+
+		verticalHeaderLabel = self.util_getWeeknumbers()
+
+		self.business_Mission_model.setVerticalHeaderLabels(verticalHeaderLabel)
+		self.business_ingIO_model.setVerticalHeaderLabels(verticalHeaderLabel)
+		self.update_business_Mission(self.database.getContent())
+		self.update_business_ingIO(self.database.getContent())

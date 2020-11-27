@@ -1,184 +1,22 @@
 {
-    "IAs": {
-        "1": {
-            "activities": {
-                "45_2020": [
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0"
-                ],
-                "47_2020": [
-                    "1",
-                    "2",
-                    "5",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0"
-                ],
-                "48_2020": [
-                    "5",
-                    "8",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0"
-                ]
-            },
-            "inChargeOf": [],
-            "name": "ss",
-            "role": "IA"
-        },
-        "3": {
-            "activities": {
-                "45_2020": [
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0"
-                ],
-                "46_2020": [
-                    "1",
-                    "2",
-                    "3",
-                    "4",
-                    "5",
-                    "6",
-                    "0",
-                    "0",
-                    "0",
-                    "0"
-                ],
-                "47_2020": [
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0"
-                ],
-                "48_2020": [
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0"
-                ]
-            },
-            "inChargeOf": [],
-            "name": "clement",
-            "role": "IA"
-        }
-    },
+    "IAs": {},
     "INGs": {
         "0": {
-            "current_client": null,
-            "entryDate": "01.2000",
+            "current_client": "",
+            "entryDate": "01.11.2020",
             "managerID": null,
             "mission_Start": null,
             "mission_Stop": null,
-            "name": "csa",
-            "state": null
+            "name": "j",
+            "state": "Without Mission"
         },
         "1": {
-            "current_client": "fwefewfw",
-            "entryDate": "01.2000",
-            "managerID": "1",
-            "mission_Start": null,
-            "mission_Stop": null,
-            "name": "dgerwe",
-            "state": "Without Mission"
-        },
-        "2": {
-            "current_client": "fwefewfwe",
-            "entryDate": "01.2000",
-            "managerID": "1",
-            "mission_Start": null,
-            "mission_Stop": null,
-            "name": "feewfewf",
-            "state": "Without Mission"
-        },
-        "3": {
-            "current_client": "fewfw",
-            "entryDate": "01.2000",
-            "managerID": "1",
-            "mission_Start": null,
-            "mission_Stop": null,
-            "name": "fewfewfwefewfwe",
-            "state": "AR"
-        },
-        "4": {
-            "current_client": "dsd",
-            "entryDate": "01.2000",
-            "managerID": "1",
-            "mission_Start": null,
-            "mission_Stop": null,
-            "name": "fewfwef",
-            "state": "With Mission"
-        },
-        "5": {
-            "current_client": "fewfewfw",
-            "entryDate": "01.2000",
+            "current_client": "",
+            "entryDate": "01.11.2020",
             "managerID": null,
             "mission_Start": null,
             "mission_Stop": null,
-            "name": "gesfewfe",
-            "state": "Without Mission"
-        },
-        "6": {
-            "current_client": "",
-            "entryDate": "01.2000",
-            "managerID": "3",
-            "mission_Start": null,
-            "mission_Stop": null,
-            "name": "thomas",
-            "state": "Without Mission"
-        },
-        "7": {
-            "current_client": "",
-            "entryDate": "01.2000",
-            "managerID": "3",
-            "mission_Start": null,
-            "mission_Stop": null,
-            "name": "thomas",
-            "state": "Without Mission"
-        },
-        "8": {
-            "current_client": "",
-            "entryDate": "01.2000",
-            "managerID": null,
-            "mission_Start": null,
-            "mission_Stop": null,
-            "name": "thomas",
+            "name": "l",
             "state": "Without Mission"
         }
     }

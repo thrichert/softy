@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1186</width>
+    <width>1179</width>
     <height>818</height>
    </rect>
   </property>
@@ -17,7 +17,7 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>0</x>
       <y>10</y>
       <width>1171</width>
       <height>761</height>
@@ -230,43 +230,7 @@
      <attribute name="title">
       <string>Business</string>
      </attribute>
-     <widget class="QTableView" name="business_Ing_list">
-      <property name="geometry">
-       <rect>
-        <x>700</x>
-        <y>50</y>
-        <width>141</width>
-        <height>141</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton">
-      <property name="geometry">
-       <rect>
-        <x>950</x>
-        <y>50</y>
-        <width>93</width>
-        <height>28</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>start mission</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_3">
-      <property name="geometry">
-       <rect>
-        <x>950</x>
-        <y>90</y>
-        <width>93</width>
-        <height>28</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>stop mission</string>
-      </property>
-     </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>260</x>
@@ -284,7 +248,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QDateEdit" name="dateEdit">
+        <widget class="QDateEdit" name="business_current_month_select">
          <property name="displayFormat">
           <string>MM/yyyy</string>
          </property>
@@ -299,7 +263,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>700</x>
@@ -636,7 +600,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -671,6 +635,45 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="">
+      <property name="geometry">
+       <rect>
+        <x>700</x>
+        <y>50</y>
+        <width>351</width>
+        <height>141</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QTableView" name="business_Ing_list"/>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QPushButton" name="ingStartMission">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>start mission</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="ingStopMission">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>stop mission</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </widget>
   </widget>
@@ -679,7 +682,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1186</width>
+     <width>1179</width>
      <height>26</height>
     </rect>
    </property>
