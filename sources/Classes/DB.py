@@ -7,7 +7,11 @@ class DB(object):
 			print('create DB')
 			self.data = {
 				"IAs": {},
-				"INGs": {}
+				"INGs": {},
+				"archive":{
+					"IAs":{},
+					"INGs":{}
+				}
 			}
 			with open(path, 'w') as f:
 				f.write(json.dumps(self.data, sort_keys=True, indent=4))

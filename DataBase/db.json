@@ -1,23 +1,30 @@
 {
     "IAs": {},
     "INGs": {
-        "0": {
-            "current_client": "",
-            "entryDate": "01.11.2020",
-            "managerID": null,
-            "mission_Start": null,
-            "mission_Stop": null,
-            "name": "j",
-            "state": "Without Mission"
-        },
         "1": {
-            "current_client": "",
+            "current_client": "turltutu",
             "entryDate": "01.11.2020",
             "managerID": null,
-            "mission_Start": null,
-            "mission_Stop": null,
-            "name": "l",
-            "state": "Without Mission"
+            "mission_Start": "01.11.2020",
+            "mission_Stop": "01.12.2020",
+            "name": "asctif",
+            "state": "with Mission"
+        }
+    },
+    "archive": {
+        "IAs": {},
+        "INGs": {
+            "0": {
+                "current_client": "",
+                "endContract": "01.01.2021",
+                "entryDate": "01.11.2020",
+                "managerID": null,
+                "mission_Start": null,
+                "mission_Stop": null,
+                "motif": "jbewew",
+                "name": "huhu",
+                "state": "Without Mission"
+            }
         }
     }
 }

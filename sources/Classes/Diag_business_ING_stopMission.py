@@ -8,7 +8,7 @@ class Diag_business_ING_stopMission(QtWidgets.QDialog):
 	Class that handle a dialog window to stop a mission for the
 	selected engineer
 	"""
-	def __init__(self, viewPath, selectedIng, database):
+	def __init__(self, viewPath, selectedIng, database, mainWindow):
 		super(Diag_business_ING_stopMission, self).__init__()
 		uic.loadUi(viewPath, self)
 
@@ -21,7 +21,7 @@ class Diag_business_ING_stopMission(QtWidgets.QDialog):
 			missionStopDate = self.findChild(QtWidgets.QDateEdit, "stopDate")
 			ingState = self.findChild(QtWidgets.QComboBox, "ing_State_comboBox")
 			ingID = ING.getIngIDfromName(selectedIng, database)
-			missionStartDate = QtCore.QDate().fromString(content["INGs"][ingID]["mission_Start"],"MM.yyyy")
+			missionStartDate = QtCore.QDate().fromString(content["INGs"][ingID]["mission_Start"],"dd.MM.yyyy")
 			#check user input
 			if (missionStopDate.date() > missionStartDate):
 				alert = QtWidgets.QMessageBox()
@@ -30,8 +30,9 @@ class Diag_business_ING_stopMission(QtWidgets.QDialog):
 
 			# add info to BD
 			content["INGs"][ingID]["current_client"] = None
-			content["INGs"][ingID]["mission_Stop"] = missionStopDate.date().toString("MM.yyyy")
+			content["INGs"][ingID]["mission_Stop"] = missionStopDate.date().toString("dd.MM.yyyy")
 			content["INGs"][ingID]["state"] = ingState.currentText()
 			database.write(content)
+			mainWindow.populate_ing_business_MissionIO(ingID)
 		else:
 			print ("Nop")

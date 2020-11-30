@@ -5,7 +5,7 @@ from Classes.IngAffaire import IngAffaire
 
 class Diag_addING_Window(QtWidgets.QDialog):
 	"""
-	Class that handle a dialog window to create a Engineer
+	Class that handle a dialog window to create an Engineer
 	"""
 	def __init__(self, viewPath, database, mainWindow):
 		super(Diag_addING_Window, self).__init__()
@@ -34,15 +34,24 @@ class Diag_addING_Window(QtWidgets.QDialog):
 				alert.exec_()
 			else:
 				#add new IA to db
-				if len(content["INGs"].keys()) == 0:
-					NbrIng = 0
+				#get max key from current and archive ID
+				ING_key = content["INGs"].keys()
+				archiveING_id = content["archive"]["INGs"].keys()
+
+				if len(ING_key) != 0 and len(archiveING_id) != 0:
+					NbrIng = int(max( max(ING_key), max(archiveING_id))) + 1
+				elif len(ING_key) == 0 and len(archiveING_id) != 0:
+					NbrIng = int(max('0', max(archiveING_id))) + 1
+				elif len(archiveING_id) == 0 and len(ING_key) != 0:
+					NbrIng = int(max(max(ING_key), '0')) + 1
 				else:
-					NbrIng = int(max(content["INGs"].keys())) + 1
+					NbrIng = 0
+
 				newIng = ING(userName.text(), NbrIng)
 				newIng.setEntryDate(userEntryDate.date().toString("dd.MM.yyyy"))
 				#update QlistView in mainWindow
-				mainWindow.update_ING_tableView(database.getContent())
-				mainWindow.update_business_ING_listView(database.getContent())
+				#mainWindow.update_ING_tableView(database.getContent())
+
 				# if ING as manager => add ing in InChargeOF (IA)
 				if userManager.currentText() != "None":
 					ia_id = IngAffaire.getIngAffaireIDfromName(userManager.currentText(), database)
@@ -51,9 +60,11 @@ class Diag_addING_Window(QtWidgets.QDialog):
 				newIng.setCurrentClient(userClient.text())
 				newIng.setState(userState.currentText())
 				newIng.save(database)
-				database.write(content)
+				content = database.getContent()
 				mainWindow.update_ING_tableView(content)
-				mainWindow.populate_ing_business_ingIO()
+				mainWindow.update_business_ING_listView(content)
+				database.write(content)
+				mainWindow.populate_ing_business_ingIO(NbrIng)
 		else:
 			print('Nop')
 

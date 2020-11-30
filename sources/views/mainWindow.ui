@@ -72,6 +72,9 @@
          </property>
         </widget>
         <widget class="QPushButton" name="pushButton_2">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="geometry">
           <rect>
            <x>160</x>
@@ -85,6 +88,9 @@
          </property>
         </widget>
         <widget class="QPushButton" name="pushButton_5">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="geometry">
           <rect>
            <x>160</x>
@@ -127,7 +133,10 @@
           <string>Add New</string>
          </property>
         </widget>
-        <widget class="QPushButton" name="pushButton_4">
+        <widget class="QPushButton" name="delete_ing_pushbutton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="geometry">
           <rect>
            <x>240</x>
@@ -141,6 +150,9 @@
          </property>
         </widget>
         <widget class="QPushButton" name="pushButton_6">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="geometry">
           <rect>
            <x>240</x>
@@ -635,7 +647,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>700</x>
