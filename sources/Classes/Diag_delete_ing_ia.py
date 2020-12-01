@@ -1,5 +1,4 @@
-from PyQt5 import QtWidgets, uic
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtWidgets, uic, QtCore, QtGui
 import sys, os, json
 from Classes.DB import DB
 from Classes.ING import ING
@@ -10,7 +9,7 @@ class Diag_delete_ing_ia(QtWidgets.QDialog):
 	Class that handle a dialog window to delete an Engineer or an BusinessIng
 	"""
 
-	def __init__(self, viewPath, selectedIng, database, mainWindow):
+	def __init__(self, viewPath, selectedIng, database):
 		super(Diag_delete_ing_ia, self).__init__()
 		uic.loadUi(viewPath, self)
 		content = database.getContent()
@@ -21,12 +20,11 @@ class Diag_delete_ing_ia(QtWidgets.QDialog):
 		resp = self.exec_()
 
 		if resp == QtWidgets.QDialog.Accepted:
-			endContractDateEdit = self.findChild(QtWidgets.QDateEdit, "contract_end_date")
-			motifEndContract = self.findChild(QtWidgets.QLineEdit, "motif")
+			endContractDateEdit = self.findChild(QtWidgets.QDateEdit,	"contract_end_date")
+			motifEndContract = self.findChild(QtWidgets.QLineEdit,		"motif")
+
 			ingID = ING.getIngIDfromName(selectedIng, database)
-
 			ingEntryDate = QtCore.QDate().fromString(content["INGs"][ingID]['entryDate'], 'dd.MM.yyyy')
-
 
 			motifCheck = False
 			dateCheck = False
@@ -45,9 +43,6 @@ class Diag_delete_ing_ia(QtWidgets.QDialog):
 				dateCheck = True
 
 			if dateCheck and motifCheck:
-				print ("DA")
-				# Update Database
-				# get previous data
 				ingData = content["INGs"][ingID]
 				# remove ing from Ings
 				content["INGs"].pop(ingID)
@@ -58,7 +53,3 @@ class Diag_delete_ing_ia(QtWidgets.QDialog):
 
 				#save db
 				database.write(content)
-
-				# update Views
-				mainWindow.update_ING_tableView(database.getContent())
-				mainWindow.update_business_ING_listView(database.getContent())

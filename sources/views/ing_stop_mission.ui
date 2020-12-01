@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -75,6 +75,11 @@
           </item>
           <item>
            <property name="text">
+            <string>with Mission</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
             <string>IC</string>
            </property>
           </item>
@@ -84,6 +89,16 @@
            </property>
           </item>
          </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>client</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="currentClient"/>
         </item>
        </layout>
       </widget>
