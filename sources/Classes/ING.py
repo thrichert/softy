@@ -16,6 +16,8 @@ class ING(object):
 		self.state = None
 		self.entryDate = None
 		self.managerID = None
+		self.manager = None
+		self.bu = None
 		self.current_client = None
 		self.mission_Start = None
 		self.mission_Stop = None
@@ -31,8 +33,11 @@ class ING(object):
 	def setEntryDate(self, entryDate):
 		self.entryDate = entryDate
 
-	def setManager(self, managerID):
+	def setManagerID(self, managerID):
 		self.managerID = managerID
+
+	def setManagerName(self, managerName):
+		self.manager = managerName
 
 	def setCurrentClient(self, clientName):
 		self.current_client = clientName
@@ -43,15 +48,20 @@ class ING(object):
 	def setMissionStop(self, stopDate):
 		self.mission_Stop = stopDate
 
+	def setBu(self, Bu):
+		self.bu = Bu
+
 	def save(self, DB):
 		data = {
-			"name" : self.name,
-			"state": self.state,
-			"entryDate": self.entryDate,
-			"managerID": self.managerID,
-			"current_client": self.current_client,
-			"mission_Start": self.mission_Start,
-			"mission_Stop": self.mission_Stop
+			"name" :			self.name,
+			"state":			self.state,
+			"entryDate":		self.entryDate,
+			"manager":			self.manager,
+			"managerID":		self.managerID,
+			"BU":				self.bu,
+			"current_client":	self.current_client,
+			"mission_Start":	self.mission_Start,
+			"mission_Stop":		self.mission_Stop
 		}
 		content = DB.getContent()
 		content["INGs"][str(self.id)] = data

@@ -46,11 +46,13 @@ class IngAffaire(object):
 	#==============================
 
 
-	def __init__(self, name=None, role=None, idx=None):
+	def __init__(self, name=None, role=None, bu=None, manager=None,idx=None):
 		self.name = name
 		self.role = role
+		self.bu = bu
+		self.manager = manager
 		self.activities = {}
-		self.inChargeOf = []
+		self.inChargeOf = {"IAs":[],"INGs":[]}
 		self.txTranfo = [0 for i in range(5)]
 		self.avgPerf = [0 for i in range(10)]
 		if idx == None:
@@ -69,6 +71,8 @@ class IngAffaire(object):
 		data = {
 			"name":				self.name,
 			"role":				self.role,
+			"BU":				self.bu,
+			"manager":			self.manager,
 			"activities":		self.activities,
 			"inChargeOf":		self.inChargeOf,
 			"taux_de_transfo":	self.txTranfo,
@@ -140,6 +144,8 @@ class IngAffaire(object):
 		if self.id in dictKey:
 			self.name = content["IAs"][self.id]["name"]
 			self.role = content["IAs"][self.id]["role"]
+			self.bu = content["IAs"][self.id]["BU"]
+			self.manager = content["IAs"][self.id]["manager"]
 			self.activities = content["IAs"][self.id]["activities"]
 			self.inChargeOf = content["IAs"][self.id]["inChargeOf"]
 			self.txTranfo = content["IAs"][self.id]["taux_de_transfo"]

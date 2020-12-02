@@ -10,29 +10,34 @@ class Diag_addING_Window(QtWidgets.QDialog):
 	def __init__(self, viewPath, database):
 		super(Diag_addING_Window, self).__init__()
 		uic.loadUi(viewPath,self)
+		self.database = database
 		content = database.getContent()
 
-		userName = self.findChild(QtWidgets.QLineEdit,		"ING_Name")
-		userEntryDate = self.findChild(QtWidgets.QDateEdit,	"ING_entryDate")
-		userManager = self.findChild(QtWidgets.QComboBox,	"ING_managerComboList")
-		userState = self.findChild(QtWidgets.QComboBox,		"ING_stateComboList")
-		userClient = self.findChild(QtWidgets.QLineEdit,	"ING_Client")
+		self.userName = self.findChild(QtWidgets.QLineEdit,			"ING_Name")
+		self.userEntryDate = self.findChild(QtWidgets.QDateEdit,	"ING_entryDate")
+		self.userManager = self.findChild(QtWidgets.QComboBox,		"ING_managerComboList")
+		self.userState = self.findChild(QtWidgets.QComboBox,		"ING_stateComboList")
+		self.userClient = self.findChild(QtWidgets.QLineEdit,		"ING_Client")
+		self.bu = self.findChild(QtWidgets.QComboBox, 				"ING_BUComboList")
+		self.bu.currentIndexChanged.connect(self._populate_managerList)
+
+		# populate Bu combolist
+		for buName in content["BUs"]:
+			self.bu.addItem(buName)
 
 		# populate ING_managerComboList
-		IAsIDlist = content["IAs"].keys()
-		IAsNamelist = []
-		for ia in IAsIDlist:
-			IAsNamelist.append(content["IAs"][ia]["name"])
-		userManager.addItems(IAsNamelist)
+		#self._populate_managerList()
+
+
 
 		# autofill QDateEdit with today's date
-		userEntryDate.setDate(QtCore.QDate().currentDate())
+		self.userEntryDate.setDate(QtCore.QDate().currentDate())
 
 		resp = self.exec_()
 
 		#check user input
 		userNameCheck = False
-		userNameText = userName.text()
+		userNameText = self.userName.text()
 		if resp == QtWidgets.QDialog.Accepted:
 			if userNameText == "":
 				alert = QtWidgets.QMessageBox()
@@ -66,18 +71,29 @@ class Diag_addING_Window(QtWidgets.QDialog):
 					NbrIng = 0
 
 				newIng = ING(userNameText, NbrIng)
-				newIng.setEntryDate(userEntryDate.date().toString("dd.MM.yyyy"))
+				newIng.setEntryDate(self.userEntryDate.date().toString("dd.MM.yyyy"))
 
 				# if ING as manager => add ing in InChargeOF (IA)
-				if userManager.currentText() != "None":
-					ia_id = IngAffaire.getIngAffaireIDfromName(userManager.currentText(), database)
-					content["IAs"][ia_id]["inChargeOf"].append(userName.text())
-					newIng.setManager(ia_id)
+				if self.userManager.currentText() != "None":
+					ia_id = IngAffaire.getIngAffaireIDfromName(self.userManager.currentText(), database)
+					content["IAs"][ia_id]["inChargeOf"]["INGs"].append(self.userName.text())
+					newIng.setManagerID(ia_id)
+					newIng.setManagerName(self.userManager.currentText())
 				database.write(content)
-				newIng.setCurrentClient(userClient.text())
-				newIng.setState(userState.currentText())
+				newIng.setCurrentClient(self.userClient.text())
+				newIng.setState(self.userState.currentText())
+				newIng.setBu(self.bu.currentText())
 				newIng.save(database)
 
 		else:
 			print('Nop')
 
+
+	def _populate_managerList(self):
+		content = self.database.getContent()
+		IAsNamelist = ["None"]
+		self.userManager.clear()
+		for ia in content["IAs"]:
+			if content["IAs"][ia]["BU"] == self.bu.currentText():
+				IAsNamelist.append(content["IAs"][ia]["name"])
+		self.userManager.addItems(IAsNamelist)

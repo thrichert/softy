@@ -9,11 +9,13 @@ class DB(object):
 		if not os.path.exists(path):
 			self.data = {
 				"lastDBsave": now.toString("dd.MM.yyyy"),
+				"BUs":{},
 				"IAs": {},
 				"INGs": {},
 				"archive":{
 					"IAs":{},
-					"INGs":{}
+					"INGs":{},
+					"BUs":{}
 				}
 			}
 			with open(path, 'w') as f:
