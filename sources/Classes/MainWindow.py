@@ -444,7 +444,7 @@ class MainWindow(QtWidgets.QMainWindow):
 					if currentRowVerticalHeader == entryDateWeekNbr and currentYear == entryDateYearNbr:
 						self._add_ing_enter_ingIO(content['archive']["INGs"][ing], i)
 					if currentRowVerticalHeader == exitDateWeekNbr and currentYear == exitDateYearNbr:
-						self._add_ing_exit_ingIO(content['archive']["INGs"][ing], i)
+						self._add_ing_exit_ingIO(content['arczhive']["INGs"][ing], i)
 
 	def _add_ing_start_mission(self, ingData, rowIndex):
 		#	get previous data in cell

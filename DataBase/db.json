@@ -1,119 +1,28 @@
 {
-    "BUs": {
-        "BU1": {
-            "IAs": [
-                "IA1"
-            ],
-            "INGs": []
-        },
-        "bu": {
-            "IAs": [
-                "ia2"
-            ],
-            "INGs": []
-        }
-    },
-    "IAs": {
-        "0": {
-            "BU": "BU1",
-            "activities": {
-                "51_2020": [
-                    "65",
-                    "15",
-                    "15",
-                    "15",
-                    "15",
-                    "15",
-                    "15",
-                    "15",
-                    "15",
-                    "0"
-                ]
-            },
-            "avg_perf": [
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-            ],
-            "inChargeOf": {
-                "IAs": [],
-                "INGs": [
-                    "ing"
-                ]
-            },
-            "manager": "None",
-            "name": "IA1",
-            "role": "IA",
-            "taux_de_transfo": [
-                0.23076923076923078,
-                1.0,
-                1.0,
-                0.5,
-                0.0
-            ]
-        },
-        "1": {
-            "BU": "bu",
-            "activities": {
-                "51_2020": [
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0",
-                    "0"
-                ]
-            },
-            "avg_perf": [
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-            ],
-            "inChargeOf": {
-                "IAs": [],
-                "INGs": []
-            },
-            "manager": "None",
-            "name": "ia2",
-            "role": "IA",
-            "taux_de_transfo": [
-                0,
-                0,
-                0,
-                0,
-                0
-            ]
-        }
-    },
+    "BUs": {},
+    "IAs": {},
     "INGs": {
         "0": {
-            "BU": "BU1",
+            "BU": "",
             "current_client": "",
-            "entryDate": "02.12.2020",
-            "manager": "IA1",
-            "managerID": "0",
+            "entryDate": "09.12.2020",
+            "manager": null,
+            "managerID": null,
             "mission_Start": null,
             "mission_Stop": null,
-            "name": "ing",
+            "name": "c",
             "state": "Without Mission"
+        },
+        "1": {
+            "BU": "",
+            "current_client": "hu",
+            "entryDate": "09.12.2020",
+            "manager": null,
+            "managerID": null,
+            "mission_Start": null,
+            "mission_Stop": null,
+            "name": "c2",
+            "state": "With Mission"
         }
     },
     "archive": {
@@ -121,5 +30,5 @@
         "IAs": {},
         "INGs": {}
     },
-    "lastDBsave": "02.12.2020"
+    "lastDBsave": "09.12.2020"
 }

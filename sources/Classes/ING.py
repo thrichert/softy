@@ -4,14 +4,15 @@ class ING(object):
 
 	- store :
 		name
-		state : [with-Mission, without-Mission, IC, AR]
+		state : [with-Mission, IC, AR]
 		current_client : the current client he's working for
 		mission_Start : the date his mission has/(will) started/(start)
 		mission_Stop : the date his mission has/(will) stoped/(stop)
 	"""
-	_ids = 0
 
-	def __init__(self, name, idx=None):
+	def __init__(self, name, database, idx=None):
+		self.database = database
+		self.dbContent = database.getContent()
 		self.name = name
 		self.state = None
 		self.entryDate = None
@@ -22,8 +23,17 @@ class ING(object):
 		self.mission_Start = None
 		self.mission_Stop = None
 		if idx == None:
-			type(self)._ids += 1
-			self.id = ING._ids
+			ING_key = self.dbContent["INGs"].keys()
+			archiveING_id = self.dbContent["archive"]["INGs"].keys()
+
+			if len(ING_key) != 0 and len(archiveING_id) != 0:
+				self.id = int(max( max(ING_key), max(archiveING_id))) + 1
+			elif len(ING_key) == 0 and len(archiveING_id) != 0:
+				self.id = int(max('0', max(archiveING_id))) + 1
+			elif len(archiveING_id) == 0 and len(ING_key) != 0:
+				self.id = int(max(max(ING_key), '0')) + 1
+			else:
+				self.id = 0
 		else:
 			self.id = idx
 
