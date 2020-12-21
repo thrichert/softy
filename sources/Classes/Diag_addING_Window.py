@@ -64,9 +64,6 @@ class Diag_addING_Window(QtWidgets.QDialog):
 				break
 
 
-
-
-
 	def _populate_managerList(self):
 		IAsNamelist = ["None"]
 		self.userManager.clear()
@@ -98,4 +95,4 @@ class Diag_addING_Window(QtWidgets.QDialog):
 		newIng.setCurrentClient(self.userClient.text())
 		newIng.setState(self.userStateText)
 		newIng.setBu(self.bu.currentText())
-		newIng.save(self.database)
+		newIng.save()

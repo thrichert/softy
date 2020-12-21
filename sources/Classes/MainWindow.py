@@ -391,6 +391,7 @@ class MainWindow(QtWidgets.QMainWindow):
 			cellContentText = itemAtWeekNumber.text() + ",\n" + ingData["name"]
 		else:
 			cellContentText = ingData["name"]
+		print("cell", cellContentText)
 		# add new
 		newIngItem = QtGui.QStandardItem( cellContentText )
 		newIngItem.setBackground(QtGui.QBrush(QtCore.Qt.green))
@@ -421,9 +422,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		content = self.database.getContent()
 		currentBU = self.business_BuSelector.currentText()
 		for ing in content["INGs"]:
-			if content["INGs"][ing]["BU"] == currentBU:
+			if any(bu == currentBU for bu in content["INGs"][ing]["BU"]):
 				entryDate = QtCore.QDate.fromString(content['INGs'][ing]['entryDate'], "dd.MM.yyyy")
-
 				entryDateWeekNbr = str(entryDate.weekNumber()[0])
 				entryDateYearNbr = entryDate.weekNumber()[1]
 				for i in range(self.business_ing_table_model.rowCount()):
@@ -431,8 +431,10 @@ class MainWindow(QtWidgets.QMainWindow):
 					if currentRowVerticalHeader == entryDateWeekNbr and currentYear == entryDateYearNbr:
 						self._add_ing_enter_ingIO(content["INGs"][ing], i)
 
+
+
 		for ing in content['archive']["INGs"]:
-			if content['archive']["INGs"][ing]["BU"] == currentBU:
+			if any(bu == currentBU for bu in content['archive']["INGs"][ing]["BU"]):
 				entryDate = QtCore.QDate.fromString(content['archive']["INGs"][ing]['entryDate'], "dd.MM.yyyy")
 				exitDate = QtCore.QDate.fromString(content['archive']["INGs"][ing]['endContract'], "dd.MM.yyyy")
 				exitDateWeekNbr = str(exitDate.weekNumber()[0])
@@ -481,6 +483,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		currentYear = self.business_current_date.weekNumber()[1]
 		content = self.database.getContent()
 		for ing in content["INGs"]:
+			if not 'mission_Start' in content["INGs"][ing].keys() and not 'mission_Stop' in content["INGs"][ing].keys():
+				continue
 			entryDate = QtCore.QDate.fromString(content['INGs'][ing]['mission_Start'], "dd.MM.yyyy")
 			exitDate = QtCore.QDate.fromString(content['INGs'][ing]['mission_Stop'], "dd.MM.yyyy")
 
@@ -510,6 +514,7 @@ class MainWindow(QtWidgets.QMainWindow):
 	def on_business_BU_selected(self):
 		self.update_business_ING_listView()
 		self.update_business_ing_table()
+
 	def util_getWeeknumbers(self):
 		self.business_current_date = self.business_current_date_selector.date()
 		verticalHeaderLabels = []
@@ -534,43 +539,44 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.populate_ing_business_ingIO()
 
 	def verifyData(self):
-		content = self.database.getContent()
-		warningIngNames_reset = []
-		warningIngNames_3days = []
-		for ing in content["INGs"]:
-			ingName = content["INGs"][ing]["name"]
-			#mission_Start = QtCore.QDate().fromString(content["INGs"][ing]['mission_Start'], "dd.MM.yyyy")
-			mission_Stop = QtCore.QDate().fromString(content["INGs"][ing]['mission_Stop'], "dd.MM.yyyy")
-			#currentState = content["INGs"][ing]['state']
-			if self.today.daysTo(mission_Stop) < 3:
-				warningIngNames_3days.append(ingName)
-			if self.today.daysTo(mission_Stop) <= 0:
-				content["INGs"][ing]["state"] = "without Mission"
-				content["INGs"][ing]["current_client"] = ""
-				warningIngNames_reset.append(ingName)
+		pass
+		# content = self.database.getContent()
+		# warningIngNames_reset = []
+		# warningIngNames_3days = []
+		# for ing in content["INGs"]:
+		# 	ingName = content["INGs"][ing]["name"]
+		# 	#mission_Start = QtCore.QDate().fromString(content["INGs"][ing]['mission_Start'], "dd.MM.yyyy")
+		# 	mission_Stop = QtCore.QDate().fromString(content["INGs"][ing]['mission_Stop'], "dd.MM.yyyy")
+		# 	#currentState = content["INGs"][ing]['state']
+		# 	if self.today.daysTo(mission_Stop) < 3:
+		# 		warningIngNames_3days.append(ingName)
+		# 	if self.today.daysTo(mission_Stop) <= 0:
+		# 		content["INGs"][ing]["state"] = "without Mission"
+		# 		content["INGs"][ing]["current_client"] = ""
+		# 		warningIngNames_reset.append(ingName)
 
-		N = len(warningIngNames_3days)
-		if N > 0:
-			message = "Warning - ["
-			for i, name in enumerate(warningIngNames_3days):
-				message += name
-				if i < N - 1:
-					message += ', '
-			message += '] will stop their mission in less than 3 day !'
-			alert = QtWidgets.QMessageBox()
-			alert.setText(message)
-			alert.exec_()
+		# N = len(warningIngNames_3days)
+		# if N > 0:
+		# 	message = "Warning - ["
+		# 	for i, name in enumerate(warningIngNames_3days):
+		# 		message += name
+		# 		if i < N - 1:
+		# 			message += ', '
+		# 	message += '] will stop their mission in less than 3 day !'
+		# 	alert = QtWidgets.QMessageBox()
+		# 	alert.setText(message)
+		# 	alert.exec_()
 
-		N = len(warningIngNames_reset)
-		if N > 0:
-			message = "Warning - Automatic Reset for : ["
-			for i, name in enumerate(warningIngNames_3days):
-				message += name
-				if i < N - 1:
-					message += ', '
-			message += ']'
-			alert = QtWidgets.QMessageBox()
-			alert.setText(message)
-			alert.exec_()
+		# N = len(warningIngNames_reset)
+		# if N > 0:
+		# 	message = "Warning - Automatic Reset for : ["
+		# 	for i, name in enumerate(warningIngNames_3days):
+		# 		message += name
+		# 		if i < N - 1:
+		# 			message += ', '
+		# 	message += ']'
+		# 	alert = QtWidgets.QMessageBox()
+		# 	alert.setText(message)
+		# 	alert.exec_()
 
 
