@@ -62,6 +62,7 @@ class ING(User):
 	def setMissionStop(self, stopDate):
 		self.__profile["mission_Stop"] = stopDate
 
+
 	@staticmethod
 	def getIngIDfromName(name, DB):
 		if name == None:
@@ -69,3 +70,12 @@ class ING(User):
 		content = DB.getContent()
 		out =  [k for k in content["INGs"].keys() if content["INGs"][k]["name"] == name]
 		return out[0]
+
+	@staticmethod
+	def getNames(database):
+		l = []
+		content = database.getContent()
+		for i, ing in content["INGs"].items():
+			if ing['name'] != None:
+				l.append(ing['name'])
+		return l

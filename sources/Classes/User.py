@@ -74,8 +74,14 @@ class User(object):
 		currentDbContent[self.__profile["type"]][str(self.__profile["idx"])] = self.__profile
 		self.__database.write(currentDbContent)
 
+	def getID(self):
+		return self.__profile["idx"]
+
 	def getProfile(self):
 		return self.__profile
+
+	def getdbContent(self):
+		return self.__dbContent
 
 	def __str__(self):
 		return json.dumps(self.__profile, sort_keys=True, indent=4)

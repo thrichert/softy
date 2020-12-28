@@ -6,24 +6,24 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>344</width>
-    <height>245</height>
+    <width>333</width>
+    <height>238</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_6">
+  <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0">
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>New Ingenieur</string>
+      <string>New Engineer</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <layout class="QFormLayout" name="formLayout">
         <item row="1" column="1">
-         <widget class="QLineEdit" name="ING_Name"/>
+         <widget class="QLineEdit" name="name"/>
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_3">
@@ -40,7 +40,7 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QDateEdit" name="ING_entryDate">
+         <widget class="QDateEdit" name="entryDate">
           <property name="dateTime">
            <datetime>
             <hour>0</hour>
@@ -64,7 +64,7 @@
          </widget>
         </item>
         <item row="4" column="1">
-         <widget class="QComboBox" name="ING_managerComboList">
+         <widget class="QComboBox" name="manager">
           <item>
            <property name="text">
             <string>None</string>
@@ -80,28 +80,7 @@
          </widget>
         </item>
         <item row="5" column="1">
-         <widget class="QComboBox" name="ING_stateComboList">
-          <item>
-           <property name="text">
-            <string>Without Mission</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>With Mission</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>inter contrat</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>AR</string>
-           </property>
-          </item>
-         </widget>
+         <widget class="QComboBox" name="state"/>
         </item>
         <item row="6" column="0">
          <widget class="QLabel" name="label_5">
@@ -111,7 +90,7 @@
          </widget>
         </item>
         <item row="6" column="1">
-         <widget class="QLineEdit" name="ING_Client"/>
+         <widget class="QLineEdit" name="client"/>
         </item>
         <item row="3" column="0">
          <widget class="QLabel" name="label_6">
@@ -121,7 +100,7 @@
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QComboBox" name="ING_BUComboList"/>
+         <widget class="QComboBox" name="BU"/>
         </item>
        </layout>
       </item>

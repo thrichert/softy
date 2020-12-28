@@ -10,17 +10,16 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 		super(Diag_addIA_Window, self).__init__()
 		uic.loadUi(viewPath,self)
 		self.database = database
-		content = database.getContent()
+		self.dbContent = database.getContent()
 
 		# get Element
 
-		self.userName = self.findChild(QtWidgets.QLineEdit, "IA_Name")
-		self.userRole = self.findChild(QtWidgets.QComboBox, "IA_Role")
-
+		self.userName = self.findChild(QtWidgets.QLineEdit,			"name")
+		self.userEntryDate = self.findChild(QtWidgets.QDateEdit,	"entryDate")
+		self.bu = self.findChild(QtWidgets.QComboBox,				"BU")
+		self.userRole = self.findChild(QtWidgets.QComboBox,			"role")
 		self.userRole.currentIndexChanged.connect(self._on_userRole_changed)
-
-		self.BuSelector = self.findChild(QtWidgets.QComboBox, "BU_comboBox")
-		self.ManagerSelector = self.findChild(QtWidgets.QComboBox, "Manager_comboBox")
+		self.userManager = self.findChild(QtWidgets.QComboBox,		"manager")
 
 		self.scrollAera_IAs = self.findChild(QtWidgets.QScrollArea, "scrollArea_IAs")
 		self.scrollAera_INGs = self.findChild(QtWidgets.QScrollArea, "scrollArea_INGs")
@@ -36,16 +35,20 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 		self.scrollArea_IAs.setWidget(self.containerIAs)
 		self.scrollArea_INGs.setWidget(self.containerINGs)
 
-		# populate IAs & INGs scroll area
+		# set entryDate to current Date
+		self.userEntryDate.setDate(QtCore.QDate.currentDate())
 
+		for role in IngAffaire.ROLES:
+			self.userRole.addItem(IngAffaire.ROLES[role])
+
+		# populate IAs & INGs scroll area
 		self.IAs_checkBox = []
 		self.INGs_checkBox = []
-
 		# setup elements
-		for i, bu in enumerate(content["BUs"]):
-			self.BuSelector.insertItem(i, bu)
+		for buName in self.dbContent["BUs"]:
+			self.bu.addItem(buName)
 
-		INGs = content["INGs"]
+		INGs = self.dbContent["INGs"]
 		i = 0
 		for ing in INGs:
 			if INGs[ing]["manager"] == None:
@@ -53,58 +56,68 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 				self.scrollAreaLayout_INGs.addWidget(self.INGs_checkBox[i])
 				i += 1
 
-		IAs = content["IAs"]
-		for i,ia in enumerate(IAs):
+		IAs = self.dbContent["IAs"]
+		for ia in IAs:
 			if IAs[ia]["role"] != "IA":
-				self.ManagerSelector.insertItem(i, IAs[ia]["name"])
-		# run
-		resp = self.exec_()
+				self.userManager.addItem(IAs[ia]["name"])
+		userInputsCheck = False # store condition to exit the loop in case of wrong input
 
-		if resp == QtWidgets.QDialog.Accepted:
-			#check user input
-
-			if self.userName.text() == "":
-				alert = QtWidgets.QMessageBox()
-				alert.setText("error - UserName cannot be empty")
-				alert.exec_()
+		while not userInputsCheck:
+			# run
+			resp = self.exec_()
+			# get user input
+			self.userNameText = self.userName.text()
+			self.userRoleText = self.userRole.currentText()
+			self.ManagerText = self.userManager.currentText()
+			self.buText = self.bu.currentText()
+			self.userEntryDateText = self.userEntryDate.date().toString("dd.MM.yyyy")
+			if resp == QtWidgets.QDialog.Accepted:
+				#check user input
+				if self.userNameText == "":
+					self._sendAlert("error - UserName cannot be empty")
+					continue
+				if self.userNameText != "":
+					if self.userNameText in IngAffaire.getNames(self.database):
+						self._sendAlert("error - UserName already exist")
+						continue
+					else:
+						userInputsCheck = True
+						self._addIA()
+						# update BU
+						self.dbContent["BUs"][self.buText]["IAs"].append(self.userNameText)
+						# update Manager
+						if self.ManagerText != "None":
+							managerID = IngAffaire.getIngAffaireIDfromName(self.ManagerText, database)
+							self.dbContent["IAs"][managerID]["inChargeOf"]["IAs"].append(self.userNameText)
+						# update other IA whose are now managed by this new IA
+						for ia in self.IAs_checkBox:
+							if ia.isChecked():
+								iaName = ia.text()
+								iaID = IngAffaire.getIngAffaireIDfromName(iaName, self.database)
+								self.dbContent["IAs"][iaID]["manager"] = self.userNameText
+						# update other ING whose are now managed by this new IA
+						for ing in self.INGs_checkBox:
+							if ing.isChecked():
+								ingName = ing.text()
+								ingID = ING.getIngIDfromName(ingName, self.database)
+								self.dbContent["INGs"][ingID]["managerID"] = self.newIA.getID()
+								self.dbContent["INGs"][ingID]["manager"] = self.userNameText
+						database.write(self.dbContent)
+			# case cancel
 			else:
-				#add new IA to db
-				if len(content["IAs"].keys()) == 0:
-					NbrIA = 0
-				else:
-					NbrIA = int(max(content["IAs"].keys())) + 1
+				break
 
-				newUser = IngAffaire(name=self.userName.text(), role=self.userRole.currentText(), bu=self.BuSelector.currentText(), manager=self.ManagerSelector.currentText(), idx=NbrIA)
-				newUser.save(database)
-				# update BU
-				content["BUs"][self.BuSelector.currentText()]["IAs"].append(self.userName.text())
-				# update Manager
-				if self.ManagerSelector.currentText() != "None":
-					managerID = IngAffaire.getIngAffaireIDfromName(self.ManagerSelector.currentText(), database)
-					content["IAs"][managerID]["inChargeOf"]["IAs"].append(self.userName.text())
-				# update other IA whose are now managed by this new IA
-				for ia in self.IAs_checkBox:
-					if ia.isChecked():
-						iaName = ia.text()
-						iaID = IngAffaire.getIngAffaireIDfromName(iaName, self.database)
-						content["IAs"][iaID]["manager"] = self.userName.text()
-				# update other ING whose are now managed by this new IA
-				for ing in self.INGs_checkBox:
-					if ing.isChecked():
-						ingName = ing.text()
-						ingID = ING.getIngIDfromName(ingName, self.database)
-						content["INGs"][ingID]["managerID"] = NbrIA
-						content["INGs"][ingID]["manager"] = self.userName.text()
-				database.write(content)
-		else:
-			print('Nop')
+
+	def _sendAlert(self, message):
+		alert = QtWidgets.QMessageBox()
+		alert.setText(message)
+		alert.exec_()
 
 	def _on_userRole_changed(self):
-
 		self._clearLayout(self.scrollAreaLayout_IAs)
 
-		content = self.database.getContent()
-		IAs = content["IAs"]
+		self.dbContent = self.database.getContent()
+		IAs = self.dbContent["IAs"]
 
 		if self.userRole.currentText() != "IA":
 			self.IAs_checkBox = []
@@ -124,3 +137,13 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 					widget.deleteLater()
 				else:
 					self.clearLayout(item.layout())
+
+	def _addIA(self):
+		self.newIA = IngAffaire(self.userNameText, self.database)
+		self.newIA.setEntryDate(self.userEntryDateText)
+		self.newIA.setManagerName(self.ManagerText)
+		for roleId, roletxt in IngAffaire.ROLES.items():
+			if roletxt == self.ManagerText:
+				self.newIA.setRole(roleId)
+		self.newIA.setBu(self.buText)
+		self.newIA.save()

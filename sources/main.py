@@ -13,16 +13,8 @@ if __name__ == "__main__":
 	# archive Db if 1 day since last save
 	database.saveDb('./Database/')
 
-
-	testIng = ING("luc", database)
-
-	testIng.setState(5)
-	print (testIng)
-	testIng.setMissionStartDate("12/12/2020")
-	print (testIng)
-	testIng.save()
-
 	# check data consistency
-	# app = QtWidgets.QApplication(sys.argv)
-	# mainWindow = MainWindow(database)
-	# app.exec_()
+
+	app = QtWidgets.QApplication(sys.argv)
+	mainWindow = MainWindow(database)
+	app.exec_()

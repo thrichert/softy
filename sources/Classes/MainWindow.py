@@ -235,6 +235,9 @@ class MainWindow(QtWidgets.QMainWindow):
 		ia_data = IngAffaire.getIngAffaireFromID(ia_ID, self.database)
 		ia = IngAffaire(name=ia_data["name"], role=ia_data["role"], idx=ia_ID)
 
+
+
+
 		activities = ia.getActivitiesFromWeek(self.database, str(self.currentWeek[0])+"_"+str(self.currentWeek[1]))
 
 		for i in range(self.activity_model.columnCount()):

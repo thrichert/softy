@@ -1,4 +1,6 @@
-class IngAffaire(object):
+from Classes.User import User
+
+class IngAffaire(User):
 	"""
 	Class that describe a business Engineer
 
@@ -9,7 +11,6 @@ class IngAffaire(object):
 		inChargeOf : list of Engineers he's in charge of
 
 	"""
-	_ids = 0
 	#==============================
 	# activity constants ; used as index
 	_PROSP = 0
@@ -45,120 +46,113 @@ class IngAffaire(object):
 	_AVG_PROPAL = 7
 	#==============================
 
+	_IA_ROLE_IA = 0
+	_IA_ROLE_IA_MANAGER = 1
+	_IA_ROLE_IA_COACH = 2
+	_IA_ROLE_IA_RA = 3
+	_IA_ROLE_IA_DA = 4
+	_IA_ROLE_IA_DD = 5
 
-	def __init__(self, name=None, role=None, bu=None, manager=None,idx=None):
-		self.name = name
-		self.role = role
-		self.bu = bu
-		self.manager = manager
-		self.activities = {}
+
+	ROLES = {	_IA_ROLE_IA:"ingénieur affaire",
+				_IA_ROLE_IA_MANAGER:"manager",
+				_IA_ROLE_IA_COACH:"coach",
+				_IA_ROLE_IA_RA:"RA",
+				_IA_ROLE_IA_DA:"DA",
+				_IA_ROLE_IA_DD:"DD"}
+
+	def __init__(self, name, database, idx=None):
+		super().__init__(database, "IAs", idx)
+		self.__profile = self.getProfile()
+		self.__dbContent = self.getdbContent()
+		self.__name__ = "IA"
+		self.setName(name)
+		self.role = None
+		self.bu = None
+		self.manager = None
+
+		self.__profile["activities"] = {}
+		self.__profile["txTranfo"] = [0 for i in range(5)]
+		self.__profile["avgPerf"] = [0 for i in range(10)]
+
 		self.inChargeOf = {"IAs":[],"INGs":[]}
-		self.txTranfo = [0 for i in range(5)]
-		self.avgPerf = [0 for i in range(10)]
-		if idx == None:
-			type(self)._ids += 1
-			self.id = IngAffaire._ids
+
+	def setManagerName(self, managerName):
+		self.manager = managerName
+		self.__profile["manager"] = managerName
+
+	def setRole(self, role):
+		if role in self.ROLES.keys():
+			self.__profile["role"] = role
 		else:
-			self.id = idx
+			print ("[{Obj}-{fctName}] - warning unknowned role : {role}\nExpected :[{exp1}:{expV1}, {exp2}:{expV2}, {exp3}:{expV3}...]".format(
+						Obj=self.__name__,
+						fctName=self.setRole.__name__,
+						role=role,
+						exp1=self._IA_ROLE_IA,
+						expV1=self.ROLES[self._IA_ROLE_IA],
+						exp2=self._IA_ROLE_IA_MANAGER,
+						expV2=self.ROLES[self._IA_ROLE_IA_MANAGER],
+						exp3=self._IA_ROLE_IA_COACH,
+						expV3=self.ROLES[self._IA_ROLE_IA_COACH]))
 
 	def addActivity(self, week_year, activity):
-		self.activities[week_year] = activity
+		self.__profile["activities"][week_year] = activity
+
+	def getAllActivities(self):
+		return self.__profile["activities"]
 
 	def addAllActivities(self, activities):
-		self.activities = activities
+		self.__profile["activities"] = activities
 
-	def save(self, DB):
-		data = {
-			"name":				self.name,
-			"role":				self.role,
-			"BU":				self.bu,
-			"manager":			self.manager,
-			"activities":		self.activities,
-			"inChargeOf":		self.inChargeOf,
-			"taux_de_transfo":	self.txTranfo,
-			"avg_perf":			self.avgPerf
-		}
-		content = DB.getContent()
-		content["IAs"][str(self.id)] = data
-		DB.write(content)
+	def getTxTransfo(self):
+		return self.__profile["taux_de_transfo"]
 
-	def getTxTransfo(self, DB):
-		content = DB.getContent()
-		return content["IAs"][self.id]["taux_de_transfo"]
+	def getAvgPerf(self):
+		return self.__profile["avg_perf"]
 
-	def getAvgPerf(self, DB):
-		content = DB.getContent()
-		return content["IAs"][self.id]["avg_perf"]
-
-	def getAllActivities(self, DB):
-		content = DB.getContent()
-		return content["IAs"][self.id]["activities"]
-
-	def getActivitiesFromWeek(self, DB, week_year):
-		content = DB.getContent()
-		if week_year in content["IAs"][self.id]["activities"]:
-			return content["IAs"][self.id]["activities"][week_year]
+	def getActivitiesFromWeek(self, week_year):
+		if week_year in self.__profile["activities"]:
+			return self.__profile["activities"][week_year]
 		else:
 			return [0 for i in range(10)]
 
 	def processMetrics(self):
 		# get Totaux
 		totaux = [0 for i in range(10)]
-		if len(self.activities) == 0:
+		if len(self.__profile["activities"]) == 0:
 			return
-		for activity in self.activities:
+		for activity in self.__profile["activities"]:
 			for i in range(10):
 				# print("i", i, "activity", activity)
-				totaux[i] += int(self.activities[activity][i])
+				totaux[i] += int(self.__profile["activities"][activity][i])
 		#===============================================
 		# process taux de transformation
 		#===============================================
 		# _BESOIN_PER_PROSP
 		if totaux[self._PROSP] == 0:
-			self.txTranfo[self._BESOIN_PER_PROSP] = 0
+			self.__profile["txTranfo"][self._BESOIN_PER_PROSP] = 0
 		else:
-			self.txTranfo[self._BESOIN_PER_PROSP] = totaux[self._NVXBESION] / totaux [self._PROSP]
+			self.__profile["txTranfo"][self._BESOIN_PER_PROSP] = totaux[self._NVXBESION] / totaux [self._PROSP]
 		# _RT_PER_BESOIN
 		if totaux[self._NVXBESION] == 0:
-			self.txTranfo[self._RT_PER_BESOIN] = 0
+			self.__profile["txTranfo"][self._RT_PER_BESOIN] = 0
 		else:
-			self.txTranfo[self._RT_PER_BESOIN] = totaux[self._KLIF] / totaux [self._NVXBESION]
+			self.__profile["txTranfo"][self._RT_PER_BESOIN] = totaux[self._KLIF] / totaux [self._NVXBESION]
 		# _RPLUS_PER_RT
 		if totaux[self._KLIF] == 0:
-			self.txTranfo[self._RPLUS_PER_RT] = 0
+			self.__profile["txTranfo"][self._RPLUS_PER_RT] = 0
 		else:
-			self.txTranfo[self._RPLUS_PER_RT] = totaux[self._START] / totaux[self._KLIF]
+			self.__profile["txTranfo"][self._RPLUS_PER_RT] = totaux[self._START] / totaux[self._KLIF]
 		# _EC2_PER_EC1 & _RH_PER_EC1
 		som = (totaux[self._PUSHDC] + totaux[self._EC1])
 		if som == 0:
-			self.txTranfo[self._EC2_PER_EC1] = 0
-			self.txTranfo[self._RH_PER_EC1] = 0
+			self.__profile["txTranfo"][self._EC2_PER_EC1] = 0
+			self.__profile["txTranfo"][self._RH_PER_EC1] = 0
 		else:
-			self.txTranfo[self._EC2_PER_EC1] = totaux[self._EC2] / som
-			self.txTranfo[self._RH_PER_EC1] = totaux[self._RH] / som
+			self.__profile["txTranfo"][self._EC2_PER_EC1] = totaux[self._EC2] / som
+			self.__profile["txTranfo"][self._RH_PER_EC1] = totaux[self._RH] / som
 
-	def loadFromDB(self, DB):
-		content = DB.getContent()
-		# check if ia_id match
-		dictKey = content["IAs"].keys()
-		if self.id in dictKey:
-			self.name = content["IAs"][self.id]["name"]
-			self.role = content["IAs"][self.id]["role"]
-			self.bu = content["IAs"][self.id]["BU"]
-			self.manager = content["IAs"][self.id]["manager"]
-			self.activities = content["IAs"][self.id]["activities"]
-			self.inChargeOf = content["IAs"][self.id]["inChargeOf"]
-			self.txTranfo = content["IAs"][self.id]["taux_de_transfo"]
-			self.avgPerf = content["IAs"][self.id]["avg_perf"]
-			return self
-		else:
-			print('Nop')
-			return None
-
-	@staticmethod
-	def getIngAffaireFromID(idx, DB):
-		content = DB.getContent()
-		return content["IAs"][idx]
 
 	@staticmethod
 	def getIngAffaireIDfromName(name, DB):
@@ -169,6 +163,10 @@ class IngAffaire(object):
 		return out[0]
 
 	@staticmethod
-	def getIngAffaireActivitiesFromID(idx, DB):
-		content = DB.getContent()
-		return content["IAs"][idx]["activities"]
+	def getNames(database):
+		l = []
+		content = database.getContent()
+		for i, ing in content["IAs"].items():
+			if ing['name'] != None:
+				l.append(ing['name'])
+		return l

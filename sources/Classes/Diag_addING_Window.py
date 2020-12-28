@@ -13,13 +13,17 @@ class Diag_addING_Window(QtWidgets.QDialog):
 		self.database = database
 		self.dbContent = database.getContent()
 
-		self.userName = self.findChild(QtWidgets.QLineEdit,			"ING_Name")
-		self.userEntryDate = self.findChild(QtWidgets.QDateEdit,	"ING_entryDate")
-		self.userManager = self.findChild(QtWidgets.QComboBox,		"ING_managerComboList")
-		self.userState = self.findChild(QtWidgets.QComboBox,		"ING_stateComboList")
-		self.userClient = self.findChild(QtWidgets.QLineEdit,		"ING_Client")
-		self.bu = self.findChild(QtWidgets.QComboBox, 				"ING_BUComboList")
+		self.userName = self.findChild(QtWidgets.QLineEdit,			"name")
+		self.userEntryDate = self.findChild(QtWidgets.QDateEdit,	"entryDate")
+		self.bu = self.findChild(QtWidgets.QComboBox, 				"BU")
 		self.bu.currentIndexChanged.connect(self._populate_managerList)
+		self.userManager = self.findChild(QtWidgets.QComboBox,		"manager")
+
+		self.userState = self.findChild(QtWidgets.QComboBox,		"state")
+		self.userClient = self.findChild(QtWidgets.QLineEdit,		"client")
+
+		# set entryDate to current Date
+		self.userEntryDate.setDate(QtCore.QDate.currentDate())
 
 		# populate Bu combolist
 		for buName in self.dbContent["BUs"]:
@@ -28,15 +32,15 @@ class Diag_addING_Window(QtWidgets.QDialog):
 		# update entry date with current day
 		self.userEntryDate.setDate(QtCore.QDate().currentDate())
 
-
 		# populate ING_managerComboList
 		#self._populate_managerList()
 
 		userInputsCheck = False # store condition to exit the loop in case of wrong input
 
 		while not userInputsCheck:
-			# get user input
+			# prompt dialog
 			resp = self.exec_()
+			# get user input
 			self.userNameText = self.userName.text()
 			self.userclientText = self.userClient.text()
 			self.userStateText = self.userState.currentText()
@@ -50,10 +54,7 @@ class Diag_addING_Window(QtWidgets.QDialog):
 					continue
 				if self.userNameText != "":
 					# check if name already exists
-					names = []
-					for ing in self.dbContent["INGs"]:
-						names.append(self.dbContent["INGs"][ing]["name"])
-					if self.userNameText in names:
+					if self.userNameText in ING.getNames(self.database):
 						self._sendAlert("error - UserName already exist")
 						continue
 					else:
