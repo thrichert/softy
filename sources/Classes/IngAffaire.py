@@ -74,7 +74,9 @@ class IngAffaire(User):
 		self.__profile["activities"] = {}
 		self.__profile["txTranfo"] = [0 for i in range(5)]
 		self.__profile["avgPerf"] = [0 for i in range(10)]
-
+		self.__profile["prev_perf"] = {
+			"txTransfo":{},
+			"avgPerf":{}}
 		self.inChargeOf = {"IAs":[],"INGs":[]}
 
 	def setManagerName(self, managerName):
@@ -153,6 +155,10 @@ class IngAffaire(User):
 			self.__profile["txTranfo"][self._EC2_PER_EC1] = totaux[self._EC2] / som
 			self.__profile["txTranfo"][self._RH_PER_EC1] = totaux[self._RH] / som
 
+	def saveCurrentMetrics(self, week_year):
+		self.__profile["prev_perf"]["txTranfo"][week_year] = self.__profile["txTransfo"]
+		self.__profile["prev_perf"]["avg_perf"][week_year] = self.__profile["avg_perf"]
+
 
 	@staticmethod
 	def getIngAffaireIDfromName(name, DB):
@@ -166,7 +172,15 @@ class IngAffaire(User):
 	def getNames(database):
 		l = []
 		content = database.getContent()
-		for i, ing in content["IAs"].items():
-			if ing['name'] != None:
-				l.append(ing['name'])
+		for i, ia in content["IAs"].items():
+			if ia['name'] != None:
+				l.append(ia['name'])
 		return l
+
+	@staticmethod
+	def load(database, name):
+		currentDbContent = database.getContent()
+		for i, ia in currentDbContent["IAs"].items():
+			if ia['name'] == name:
+				return IngAffaire(ia["name"], database, ia["idx"])
+		return None

@@ -84,7 +84,8 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 						userInputsCheck = True
 						self._addIA()
 						# update BU
-						self.dbContent["BUs"][self.buText]["IAs"].append(self.userNameText)
+						if self.buText != "":
+							self.dbContent["BUs"][self.buText]["IAs"].append(self.userNameText)
 						# update Manager
 						if self.ManagerText != "None":
 							managerID = IngAffaire.getIngAffaireIDfromName(self.ManagerText, database)
@@ -143,7 +144,7 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 		self.newIA.setEntryDate(self.userEntryDateText)
 		self.newIA.setManagerName(self.ManagerText)
 		for roleId, roletxt in IngAffaire.ROLES.items():
-			if roletxt == self.ManagerText:
+			if roletxt == self.userRoleText:
 				self.newIA.setRole(roleId)
 		self.newIA.setBu(self.buText)
 		self.newIA.save()

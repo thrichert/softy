@@ -23,6 +23,7 @@ class ING(User):
 		self.__profile = self.getProfile()
 		self.__name__ = "ING"
 		self.setName(name)
+		self.__profile["prev_mission"] = {}
 		self.state = None
 		self.entryDate = None
 		self.managerID = None
@@ -54,14 +55,22 @@ class ING(User):
 		self.__profile["manager"] = managerName
 
 	def setCurrentClient(self, clientName):
+		self.current_client = clientName
 		self.__profile["current_client"] = clientName
 
 	def setMissionStartDate(self, startDate):
+		self.mission_Start = startDate
 		self.__profile["mission_Start"] = startDate
 
 	def setMissionStop(self, stopDate):
 		self.__profile["mission_Stop"] = stopDate
 
+	def saveCurrentMission(self):
+		l = len(self.__profile["prev_mission"])
+		self.__profile["prev_mission"][l] = {
+			"mission_Start":	self.mission_Start,
+			"mission_Stop":		self.mission_Stop,
+			"client":			self.current_client}
 
 	@staticmethod
 	def getIngIDfromName(name, DB):
@@ -79,3 +88,11 @@ class ING(User):
 			if ing['name'] != None:
 				l.append(ing['name'])
 		return l
+
+	@staticmethod
+	def load(database, name):
+		currentDbContent = database.getContent()
+		for i, ing in currentDbContent["INGs"].items():
+			if ing['name'] == name:
+				return ING(ing["name"], database, ing["idx"])
+		return None

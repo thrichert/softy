@@ -54,7 +54,7 @@ class User(object):
 			else:
 				self.__profile["idx"] = 0
 		else:
-			self.__profile = self.__dbContent[userType][idx]
+			self.__profile = self.__dbContent[userType][str(idx)]
 
 
 	def setName(self, name):
@@ -82,6 +82,13 @@ class User(object):
 
 	def getdbContent(self):
 		return self.__dbContent
+
+	def toArchive(self):
+		t = self.__profile["type"]
+		i = str(self.__profile["idx"])
+		currentDbContent = self.__database.getContent()
+		currentDbContent["archive"][t][i] = currentDbContent[t][i]
+		self.__database.write(currentDbContent)
 
 	def __str__(self):
 		return json.dumps(self.__profile, sort_keys=True, indent=4)

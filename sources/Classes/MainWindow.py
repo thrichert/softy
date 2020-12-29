@@ -213,7 +213,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		for rowID, IA in enumerate(content["IAs"]):
 			name = QtGui.QStandardItem(content["IAs"][IA]["name"])
 			role = QtGui.QStandardItem(content["IAs"][IA]["role"])
-			bu = QtGui.QStandardItem(content["IAs"][IA]["BU"])
+			bu = QtGui.QStandardItem("".join(content["IAs"][IA]["BU"]))
 			self.IAs_model.setItem(rowID, 0, name)
 			self.IAs_model.setItem(rowID, 1, role)
 			self.IAs_model.setItem(rowID, 2, bu)
@@ -231,14 +231,9 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.activity_list = self.findChild(QtWidgets.QTableView, "activityList")
 
 		# get IA's ID from his name
-		ia_ID = IngAffaire.getIngAffaireIDfromName(self.selectedIA, self.database)
-		ia_data = IngAffaire.getIngAffaireFromID(ia_ID, self.database)
-		ia = IngAffaire(name=ia_data["name"], role=ia_data["role"], idx=ia_ID)
+		ia = IngAffaire.load(self.database, self.selectedIA)
 
-
-
-
-		activities = ia.getActivitiesFromWeek(self.database, str(self.currentWeek[0])+"_"+str(self.currentWeek[1]))
+		activities = ia.getActivitiesFromWeek(str(self.currentWeek[0])+"_"+str(self.currentWeek[1]))
 
 		for i in range(self.activity_model.columnCount()):
 			item =  QtGui.QStandardItem(str(activities[i]))
@@ -255,8 +250,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.selectedIA = self.activity_IAs_list.currentIndex().data()
 		if self.currentWeek != None:
 			self.update_activity_tableView(self.database, self.selectedIA, self.currentWeek)
-		ia_ID = IngAffaire.getIngAffaireIDfromName(self.selectedIA, self.database)
-		ia = IngAffaire(idx=ia_ID).loadFromDB(self.database)
+		ia = IngAffaire.load(self.database, self.selectedIA)
 		self._activity_update_metrics(ia)
 
 	def update_activity_BuComboBox(self):
@@ -297,8 +291,7 @@ class MainWindow(QtWidgets.QMainWindow):
 			alert.exec_()
 		else:
 			# get IA's ID from his name
-			ia_ID = IngAffaire.getIngAffaireIDfromName(self.selectedIA, self.database)
-			ia = IngAffaire(idx=ia_ID).loadFromDB(self.database)
+			ia = IngAffaire.load(self.database, self.selectedIA)
 			if ia == None:
 				alert = QtWidgets.QMessageBox()
 				alert.setText("error - " + self.selectedIA + "Not find in database...")
