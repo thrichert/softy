@@ -33,11 +33,14 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.IAs_list = self.findChild(QtWidgets.QTableView, "IAsList")
 		header = self.IAs_list.horizontalHeader()
 		header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+		self.IAs_list.verticalHeader().hide()
+
 		# ADM Engineer table
 		self.INGs_list = self.findChild(QtWidgets.QTableView, "INGsList")
 		self.INGs_list.clicked.connect(self.on_Ings_list_selected)
 		header = self.INGs_list.horizontalHeader()
 		header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+		self.INGs_list.verticalHeader().hide()
 		# PushButton Action
 		self.addNew_IA = self.findChild(QtWidgets.QPushButton, "addNewIA")
 		self.addNew_IA.clicked.connect(self.on_addNew_IA)
@@ -60,6 +63,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.BUs_model.setHeaderData(0, QtCore.Qt.Horizontal, 'Name')
 		header = self.Bus_listView.horizontalHeader()
 		header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+		self.BUs_model.verticalHeader().hide()
 
 
 		# setup IAs QtableView
@@ -96,6 +100,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.activity_detailBU_selector.currentIndexChanged.connect(self.update_activity_IA_list)
 
 		# setup IAs list
+		self.activity_IAs_list = self.findChild(QtWidgets.QTableView, "Activity_IAsList")
 		self.update_activity_IA_list()
 		self.activity_IAs_list.clicked.connect(self.on_activity_IAselected)
 
@@ -255,6 +260,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 	def update_activity_BuComboBox(self):
 		content = self.database.getContent()
+		self.activity_detailBU_selector.clear()
+		self.activity_globalBU_selector.clear()
 		for i, bu in enumerate(content["BUs"]):
 			self.activity_detailBU_selector.insertItem(i, bu)
 			self.activity_globalBU_selector.insertItem(i, bu)
@@ -274,12 +281,12 @@ class MainWindow(QtWidgets.QMainWindow):
 		content = self.database.getContent()
 		#get current selected BU
 		selectedBU = self.activity_detailBU_selector.currentText()
-		self.activity_IAs_list = self.findChild(QtWidgets.QListView, "Activity_IAsList")
-		model = QtGui.QStandardItemModel()
-		self.activity_IAs_list.setModel(model)
-		for ia in content["IAs"]:
-			if content["IAs"][ia]["BU"] == selectedBU:
-				model.appendRow(QtGui.QStandardItem(content["IAs"][ia]["name"]))
+		if selectedBU == '' or selectedBU == None:
+			return
+		self.activity_IAs_list_model = QtGui.QStandardItemModel()
+		for name in content["BUs"][selectedBU]["IAs"]:
+			self.activity_IAs_list_model.appendRow(QtGui.QStandardItem(name))
+		self.activity_IAs_list.setModel(self.activity_IAs_list_model)
 
 	def on_activity_table_dataChange(self, index):
 		# check user input
@@ -310,12 +317,12 @@ class MainWindow(QtWidgets.QMainWindow):
 					l.append(str(0))
 			ia.addActivity(str(self.currentWeek[0])+"_"+str(self.currentWeek[1]), l)
 			ia.processMetrics()
-			ia.save(self.database)
+			ia.save()
 			# update metrics
 			self._activity_update_metrics(ia)
 
 	def _activity_update_metrics(self, ia):
-		res = ia.getTxTransfo(self.database)
+		res = ia.getTxTransfo()
 		for i in range (5):
 		 	self.activity_metrics_tx_tranfo[i].setText("{:.2f}%".format(res[i] * 100))
 		# 	if res[i] * 100 > float(self.activity_metrics_tx_transfo_objectif[i].text()):
@@ -359,15 +366,15 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.business_Ing_list.setModel(self.INGs_list_model)
 		self.INGs_list_model.clear()
 		today = QtCore.QDate.currentDate()
-		for colID, ING in enumerate(content["INGs"]):
-			if content["INGs"][ING]["BU"] == self.business_BuSelector.currentText():
-				name = QtGui.QStandardItem(content["INGs"][ING]["name"])
-				stopMissionDate = QtCore.QDate().fromString(content["INGs"][ING]["mission_Stop"], "dd.MM.yyyy")
-
-				if content["INGs"][ING]["state"] == "with Mission" and today.daysTo(stopMissionDate) > 3:
-					name.setBackground(QtGui.QBrush(QtCore.Qt.green))
-				elif content["INGs"][ING]["state"] == "with Mission" and today.daysTo(stopMissionDate) <= 3:
-					name.setBackground(QtGui.QBrush(QtCore.Qt.yellow))
+		for colID, ing in enumerate(content["INGs"]):
+			if self.business_BuSelector.currentText() in content["INGs"][ing]["BU"]:
+				name = QtGui.QStandardItem(content["INGs"][ing]["name"])
+				if content["INGs"][ing]["state"] in ING.STATES[ING.ING_STATE_MI]:
+					stopMissionDate = QtCore.QDate().fromString(content["INGs"][ing]["mission_Stop"], "dd.MM.yyyy")
+					if today.daysTo(stopMissionDate) > 3:
+						name.setBackground(QtGui.QBrush(QtCore.Qt.green))
+					elif today.daysTo(stopMissionDate) <= 3:
+						name.setBackground(QtGui.QBrush(QtCore.Qt.yellow))
 				else:
 					name.setBackground(QtGui.QBrush(QtCore.Qt.red))
 				self.INGs_list_model.setItem(colID, 0, name)

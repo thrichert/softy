@@ -79,6 +79,10 @@ class IngAffaire(User):
 			"avgPerf":{}}
 		self.inChargeOf = {"IAs":[],"INGs":[]}
 
+	def putInChargeOf(self, name, type):
+		self.inChargeOf[type].append(name)
+		self.__profile["inChargeOf"] = self.inChargeOf
+
 	def setManagerName(self, managerName):
 		self.manager = managerName
 		self.__profile["manager"] = managerName
@@ -108,7 +112,7 @@ class IngAffaire(User):
 		self.__profile["activities"] = activities
 
 	def getTxTransfo(self):
-		return self.__profile["taux_de_transfo"]
+		return self.__profile["txTranfo"]
 
 	def getAvgPerf(self):
 		return self.__profile["avg_perf"]

@@ -36,7 +36,7 @@
      </size>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="adm">
      <attribute name="title">
@@ -213,7 +213,7 @@
       <property name="title">
        <string>Detail BU</string>
       </property>
-      <widget class="QListView" name="Activity_IAsList">
+      <widget class="QTableView" name="Activity_IAsList">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -223,7 +223,7 @@
         </rect>
        </property>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>40</x>
@@ -675,7 +675,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>700</x>

@@ -21,7 +21,8 @@ class User(object):
 						"bu"	:		bu
 					}
 	"""
-
+	_ING = 0
+	_IA = 1
 	_USERTYPE = ["INGs", "IAs"]
 
 	def __init__(self, database, userType, idx=None):
@@ -82,6 +83,9 @@ class User(object):
 
 	def getdbContent(self):
 		return self.__dbContent
+
+	def getType(self):
+		return self.__profile["type"]
 
 	def toArchive(self):
 		t = self.__profile["type"]

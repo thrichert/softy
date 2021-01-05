@@ -25,9 +25,17 @@ class Diag_addING_Window(QtWidgets.QDialog):
 		# set entryDate to current Date
 		self.userEntryDate.setDate(QtCore.QDate.currentDate())
 
-		# populate Bu combolist
+		# populate Bu combobox
 		for buName in self.dbContent["BUs"]:
 			self.bu.addItem(buName)
+
+		# populate manager combobox
+		for manager in IngAffaire.getNames(self.database):
+			self.userManager.addItem(manager)
+
+		# populate State combobox
+		for state in ING.STATES:
+			self.userState.addItem(ING.STATES[state])
 
 		# update entry date with current day
 		self.userEntryDate.setDate(QtCore.QDate().currentDate())
@@ -44,12 +52,13 @@ class Diag_addING_Window(QtWidgets.QDialog):
 			self.userNameText = self.userName.text()
 			self.userclientText = self.userClient.text()
 			self.userStateText = self.userState.currentText()
+			self.userManagerText = self.userManager.currentText()
 			#check user input
 			if resp == QtWidgets.QDialog.Accepted:
 				if self.userNameText == "":
 					self._sendAlert("error - Name cannot be empty")
 					continue
-				if self.userStateText == "With Mission" and self.userclientText == "":
+				if self.userStateText == ING.STATES[ING.ING_STATE_MI] and self.userclientText == "":
 					self._sendAlert("error - Client's Name cannot be empty if " + self.userNameText + " is in a mission")
 					continue
 				if self.userNameText != "":
@@ -66,11 +75,13 @@ class Diag_addING_Window(QtWidgets.QDialog):
 
 
 	def _populate_managerList(self):
-		IAsNamelist = ["None"]
+		IAsNamelist = []
 		self.userManager.clear()
 		for ia in self.dbContent["IAs"]:
-			if self.dbContent["IAs"][ia]["BU"] == self.bu.currentText():
+			if self.bu.currentText() in self.dbContent["IAs"][ia]["BU"]:
 				IAsNamelist.append(self.dbContent["IAs"][ia]["name"])
+		if IAsNamelist == []:
+				IAsNamelist.append("None")
 		self.userManager.addItems(IAsNamelist)
 
 	def _sendAlert(self, message):
@@ -80,20 +91,23 @@ class Diag_addING_Window(QtWidgets.QDialog):
 
 	def _addIng(self):
 		#add new ING to db
-		#get max key from current and archive ID
 
 		newIng = ING(self.userNameText, self.database)
 		newIng.setEntryDate(self.userEntryDate.date().toString("dd.MM.yyyy"))
 
 		# if ING as manager => add ing in InChargeOF (IA)
-		if self.userManager.currentText() != "None":
-			ia_id = IngAffaire.getIngAffaireIDfromName(self.userManager.currentText(), self.database)
-			#TO DO : add IngAffaire Method to update IA inChargeOf field
-			self.dbContent["IAs"][ia_id]["inChargeOf"]["INGs"].append(self.userNameText)
-			newIng.setManagerID(ia_id)
-			newIng.setManagerName(self.userManager.currentText())
+		if self.userManagerText != "None":
+			manager = IngAffaire.load(self.database, self.userManagerText)
+			manager.putInChargeOf(self.userNameText, newIng.getType())
+			manager.save()
+			newIng.setManagerID(manager.getID())
+			newIng.setManagerName(self.userManagerText)
+		else:
+			newIng.setManagerName(None)
 		self.database.write(self.dbContent)
-		newIng.setCurrentClient(self.userClient.text())
-		newIng.setState(self.userStateText)
+		newIng.setCurrentClient(self.userclientText)
+		for state in ING.STATES:
+			if self.userStateText == ING.STATES[state]:
+				newIng.setState(state)
 		newIng.setBu(self.bu.currentText())
 		newIng.save()

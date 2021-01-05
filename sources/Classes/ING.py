@@ -49,9 +49,11 @@ class ING(User):
 						expV3=self.STATES[self.ING_STATE_MI]))
 
 	def setManagerID(self, managerID):
+		self.managerID = managerID
 		self.__profile["managerID"] = managerID
 
 	def setManagerName(self, managerName):
+		self.manager = managerName
 		self.__profile["manager"] = managerName
 
 	def setCurrentClient(self, clientName):
@@ -63,6 +65,7 @@ class ING(User):
 		self.__profile["mission_Start"] = startDate
 
 	def setMissionStop(self, stopDate):
+		self.mission_Stop = stopDate
 		self.__profile["mission_Stop"] = stopDate
 
 	def saveCurrentMission(self):
