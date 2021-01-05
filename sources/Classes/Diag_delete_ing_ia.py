@@ -17,11 +17,14 @@ class Diag_delete_ing_ia(QtWidgets.QDialog):
 		self.groupboxName = self.findChild(QtWidgets.QGroupBox, "Ing_groupBox")
 		self.groupboxName.setTitle(selectedIng)
 
+		self.endContractDateEdit = self.findChild(QtWidgets.QDateEdit,	"contract_end_date")
+		self.endContractDateEdit.setDate(QtCore.QDate.currentDate())
+
+		self.motifEndContract = self.findChild(QtWidgets.QLineEdit,		"motif")
+
 		resp = self.exec_()
 
 		if resp == QtWidgets.QDialog.Accepted:
-			endContractDateEdit = self.findChild(QtWidgets.QDateEdit,	"contract_end_date")
-			motifEndContract = self.findChild(QtWidgets.QLineEdit,		"motif")
 
 			ingID = ING.getIngIDfromName(selectedIng, database)
 			ingEntryDate = QtCore.QDate().fromString(content["INGs"][ingID]['entryDate'], 'dd.MM.yyyy')
@@ -29,13 +32,13 @@ class Diag_delete_ing_ia(QtWidgets.QDialog):
 			motifCheck = False
 			dateCheck = False
 			#check user Input
-			if motifEndContract.text() == "":
+			if self.motifEndContract.text() == "":
 				alert = QtWidgets.QMessageBox()
 				alert.setText("error - Motif cannot be empty")
 				alert.exec_()
 			else:
 				motifCheck = True
-			if endContractDateEdit.date() < ingEntryDate:
+			if self.endContractDateEdit.date() < ingEntryDate:
 				alert = QtWidgets.QMessageBox()
 				alert.setText('error - end contract happens before entry date')
 				alert.exec_()
@@ -48,8 +51,8 @@ class Diag_delete_ing_ia(QtWidgets.QDialog):
 				content["INGs"].pop(ingID)
 				# add data to Archives
 				content["archive"]["INGs"][ingID] = ingData
-				content["archive"]["INGs"][ingID]["endContract"] = endContractDateEdit.date().toString('dd.MM.yyyy')
-				content["archive"]["INGs"][ingID]["motif"] = motifEndContract.text()
+				content["archive"]["INGs"][ingID]["endContract"] = self.endContractDateEdit.date().toString('dd.MM.yyyy')
+				content["archive"]["INGs"][ingID]["motif"] = self.motifEndContract.text()
 
 				#save db
 				database.write(content)

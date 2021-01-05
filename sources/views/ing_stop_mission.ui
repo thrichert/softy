@@ -67,28 +67,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QComboBox" name="ing_State_comboBox">
-          <item>
-           <property name="text">
-            <string>without Mission</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>with Mission</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>IC</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>AR</string>
-           </property>
-          </item>
-         </widget>
+         <widget class="QComboBox" name="ing_State_comboBox"/>
         </item>
         <item row="2" column="0">
          <widget class="QLabel" name="label">

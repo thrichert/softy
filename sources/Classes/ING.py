@@ -1,4 +1,5 @@
-class ING(object):
+from Classes.User import User
+class ING(User):
 	"""
 	Class that describe an Abylsen Engineer
 
@@ -9,11 +10,20 @@ class ING(object):
 		mission_Start : the date his mission has/(will) started/(start)
 		mission_Stop : the date his mission has/(will) stoped/(stop)
 	"""
+	ING_STATE_IC = 0
+	ING_STATE_AM = 1
+	ING_STATE_MI = 2
+
+	STATES = {	ING_STATE_IC:"inter-contrat",
+				ING_STATE_AM:"arret-maladie",
+				ING_STATE_MI:"in mission"}
 
 	def __init__(self, name, database, idx=None):
-		self.database = database
-		self.dbContent = database.getContent()
-		self.name = name
+		super().__init__(database, "INGs", idx)
+		self.__profile = self.getProfile()
+		self.__name__ = "ING"
+		self.setName(name)
+		self.__profile["prev_mission"] = {}
 		self.state = None
 		self.entryDate = None
 		self.managerID = None
@@ -22,65 +32,48 @@ class ING(object):
 		self.current_client = None
 		self.mission_Start = None
 		self.mission_Stop = None
-		if idx == None:
-			ING_key = self.dbContent["INGs"].keys()
-			archiveING_id = self.dbContent["archive"]["INGs"].keys()
 
-			if len(ING_key) != 0 and len(archiveING_id) != 0:
-				self.id = int(max( max(ING_key), max(archiveING_id))) + 1
-			elif len(ING_key) == 0 and len(archiveING_id) != 0:
-				self.id = int(max('0', max(archiveING_id))) + 1
-			elif len(archiveING_id) == 0 and len(ING_key) != 0:
-				self.id = int(max(max(ING_key), '0')) + 1
-			else:
-				self.id = 0
+	def setState(self, ing_state):
+		if ing_state in self.STATES.keys():
+			self.__profile["state"] = self.STATES[ing_state]
 		else:
-			self.id = idx
-
-	def setState(self, state):
-		self.state = state
-
-	def setEntryDate(self, entryDate):
-		self.entryDate = entryDate
+			print ("[{Obj}-{fctName}] - warning unknowned state : {val}\nExpected :[{exp1}:{expV1}, {exp2}:{expV2}, {exp3}:{expV3}]".format(
+						Obj=self.__name__,
+						fctName=self.setState.__name__,
+						val=ing_state,
+						exp1=self.ING_STATE_IC,
+						expV1=self.STATES[self.ING_STATE_IC],
+						exp2=self.ING_STATE_AM,
+						expV2=self.STATES[self.ING_STATE_AM],
+						exp3=self.ING_STATE_MI,
+						expV3=self.STATES[self.ING_STATE_MI]))
 
 	def setManagerID(self, managerID):
 		self.managerID = managerID
+		self.__profile["managerID"] = managerID
 
 	def setManagerName(self, managerName):
 		self.manager = managerName
+		self.__profile["manager"] = managerName
 
 	def setCurrentClient(self, clientName):
 		self.current_client = clientName
+		self.__profile["current_client"] = clientName
 
 	def setMissionStartDate(self, startDate):
 		self.mission_Start = startDate
+		self.__profile["mission_Start"] = startDate
 
 	def setMissionStop(self, stopDate):
 		self.mission_Stop = stopDate
+		self.__profile["mission_Stop"] = stopDate
 
-	def setBu(self, Bu):
-		self.bu = Bu
-
-	def save(self, DB):
-		data = {
-			"name" :			self.name,
-			"state":			self.state,
-			"entryDate":		self.entryDate,
-			"manager":			self.manager,
-			"managerID":		self.managerID,
-			"BU":				self.bu,
-			"current_client":	self.current_client,
+	def saveCurrentMission(self):
+		l = len(self.__profile["prev_mission"])
+		self.__profile["prev_mission"][l] = {
 			"mission_Start":	self.mission_Start,
-			"mission_Stop":		self.mission_Stop
-		}
-		content = DB.getContent()
-		content["INGs"][str(self.id)] = data
-		DB.write(content)
-
-	@staticmethod
-	def getIngFromID(idx, DB):
-		content = DB.getContent()
-		return content["INGs"][idx]
+			"mission_Stop":		self.mission_Stop,
+			"client":			self.current_client}
 
 	@staticmethod
 	def getIngIDfromName(name, DB):
@@ -89,3 +82,20 @@ class ING(object):
 		content = DB.getContent()
 		out =  [k for k in content["INGs"].keys() if content["INGs"][k]["name"] == name]
 		return out[0]
+
+	@staticmethod
+	def getNames(database):
+		l = []
+		content = database.getContent()
+		for i, ing in content["INGs"].items():
+			if ing['name'] != None:
+				l.append(ing['name'])
+		return l
+
+	@staticmethod
+	def load(database, name):
+		currentDbContent = database.getContent()
+		for i, ing in currentDbContent["INGs"].items():
+			if ing['name'] == name:
+				return ING(ing["name"], database, ing["idx"])
+		return None

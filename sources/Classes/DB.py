@@ -44,12 +44,12 @@ class DB(object):
 		os.remove(self.path)
 		# save new
 		self.write(self.data)
-		# remove previous saving older than a day
+		# remove previous saving older than a 2 day
 		folderContent = os.listdir(path)
 		for f in folderContent:
 			timestamp = self._creation_date(path + f)
 			now = time.time()
-			if ((now - timestamp)/60/60/24) > 1:
+			if ((now - timestamp)/60/60/24) > 2:
 				os.remove(path + f)
 
 	def _creation_date(self, path_to_file):
