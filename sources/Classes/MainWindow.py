@@ -58,12 +58,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
 		# setup Bu Qtableview
 		self.Bus_listView = self.findChild(QtWidgets.QTableView, "BUsList")
+		self.Bus_listView.verticalHeader().hide()
 		self.BUs_model = QtGui.QStandardItemModel()
 		self.BUs_model.setColumnCount(1)
 		self.BUs_model.setHeaderData(0, QtCore.Qt.Horizontal, 'Name')
 		header = self.Bus_listView.horizontalHeader()
 		header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-		self.BUs_model.verticalHeader().hide()
 
 
 		# setup IAs QtableView
