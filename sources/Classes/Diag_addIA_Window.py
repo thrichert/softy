@@ -11,7 +11,7 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 		uic.loadUi(viewPath,self)
 		self.database = database
 		self.dbContent = database.getContent()
-
+		self.added = False
 		# get Element
 
 		self.userName = self.findChild(QtWidgets.QLineEdit,			"name")
@@ -83,26 +83,6 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 					else:
 						userInputsCheck = True
 						self._addIA()
-						# update BU
-						if self.buText != "":
-							self.dbContent["BUs"][self.buText]["IAs"].append(self.userNameText)
-						# update Manager
-						if self.ManagerText != "None":
-							managerID = IngAffaire.getIngAffaireIDfromName(self.ManagerText, database)
-							self.dbContent["IAs"][managerID]["inChargeOf"]["IAs"].append(self.userNameText)
-						# update other IA whose are now managed by this new IA
-						for ia in self.IAs_checkBox:
-							if ia.isChecked():
-								iaName = ia.text()
-								iaID = IngAffaire.getIngAffaireIDfromName(iaName, self.database)
-								self.dbContent["IAs"][iaID]["manager"] = self.userNameText
-						# update other ING whose are now managed by this new IA
-						for ing in self.INGs_checkBox:
-							if ing.isChecked():
-								ingName = ing.text()
-								ingID = ING.getIngIDfromName(ingName, self.database)
-								self.dbContent["INGs"][ingID]["managerID"] = self.newIA.getID()
-								self.dbContent["INGs"][ingID]["manager"] = self.userNameText
 						database.write(self.dbContent)
 			# case cancel
 			else:
@@ -140,11 +120,33 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 					self.clearLayout(item.layout())
 
 	def _addIA(self):
+		self.added = True
 		self.newIA = IngAffaire(self.userNameText, self.database)
 		self.newIA.setEntryDate(self.userEntryDateText)
-		self.newIA.setManagerName(self.ManagerText)
+		if self.ManagerText != "None":
+			manager = IngAffaire.load(self.database, self.ManagerText)
+			manager.putInChargeOf(self.userNameText, self.newIA.getType())
+			manager.save()
+			self.newIA.setManagerID(manager.getID())
+			self.newIA.setManagerName(self.ManagerText)
+		else:
+			self.newIA.setManagerName(None)
 		for roleId, roletxt in IngAffaire.ROLES.items():
 			if roletxt == self.userRoleText:
 				self.newIA.setRole(roleId)
+
+		for ia in self.IAs_checkBox:
+			if ia.isChecked():
+				managedIa =  IngAffaire.load(self.database, ia.text())
+				managedIa.setManagerName(self.userNameText)
+				managedIa.setManagerID(self.newIA.getID())
+				managedIa.save()
+		# update other ING whose are now managed by this new IA
+		for ing in self.INGs_checkBox:
+			if ing.isChecked():
+				managedIng = ING.load(self.database, ing.text())
+				managedIng.setManagerName(self.userNameText)
+				managedIng.setManagerID(self.newIA.getID())
+				managedIng.save()
 		self.newIA.setBu(self.buText)
 		self.newIA.save()
