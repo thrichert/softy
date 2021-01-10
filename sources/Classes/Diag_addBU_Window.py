@@ -11,7 +11,7 @@ class Diag_addBU_Window(QtWidgets.QDialog):
 		uic.loadUi(viewPath,self)
 		content = database.getContent()
 		# load elements
-
+		self.added = False
 		self.BU_name_lineEdit = self.findChild(QtWidgets.QLineEdit, "BU_name")
 		self.scrollAera_IAs = self.findChild(QtWidgets.QScrollArea, "scrollArea_IAs")
 		self.scrollAera_INGs = self.findChild(QtWidgets.QScrollArea, "scrollArea_INGs")
@@ -44,37 +44,39 @@ class Diag_addBU_Window(QtWidgets.QDialog):
 		resp = self.exec_()
 
 		if resp == QtWidgets.QDialog.Accepted:
-
-
-			BuName_text = self.BU_name_lineEdit.text()
-
+			self.BuNameText = self.BU_name_lineEdit.text()
 			BuNameslist = content["BUs"].keys()
-
 			BuNameCheck = False
 			#check if empty
-			if BuName_text == "":
+			if self.BuNameText == "":
 				alert = QtWidgets.QMessageBox()
 				alert.setText("error - Bu's name cannot be empty")
 				alert.exec_()
 			# check if already exist
-			elif BuName_text in BuNameslist:
+			elif self.BuNameText in BuNameslist:
 				alert = QtWidgets.QMessageBox()
-				alert.setText("error - Bu : "+ BuName_text + "already exist")
+				alert.setText("error - Bu : "+ self.BuNameText + "already exist")
 				alert.exec_()
 			else:
 				BuNameCheck = True
 
 			if BuNameCheck:
-				BuData = {
-					"IAs":[],
-					"INGs":[]
-				}
+				nbChecked = 0
 				for i in range(len(self.IAs_checkBox)):
 					if self.IAs_checkBox[i].isChecked():
-						BuData["IAs"].append(self.IAs_checkBox[i].text())
+						name = self.IAs_checkBox[i].text()
+						ia = IngAffaire.load(database, name)
+						ia.setBu(self.BuNameText)
+						ia.save()
+						nbChecked += 1
 				for i in range(len(self.INGs_checkBox)):
 					if self.INGs_checkBox[i].isChecked():
-						BuData["INGs"].append(self.INGs_checkBox[i].text())
-
-				content["BUs"][BuName_text] = BuData
-				database.write(content)
+						name = self.INGs_checkBox[i].text()
+						ing = ING.load(database, name)
+						ing.setBu(self.BuNameText)
+						ing.save()
+						nbChecked += 1
+				if nbChecked == 0:
+					content['BUs'][self.BuNameText] = {"INGs":[], "IAs":[]}
+					database.write(content)
+				self.added = True
