@@ -19,13 +19,12 @@ class Diag_addING_Window(QtWidgets.QDialog):
 		self.bu.currentIndexChanged.connect(self._populate_managerList)
 		self.userManager = self.findChild(QtWidgets.QComboBox,		"manager")
 
-		self.userState = self.findChild(QtWidgets.QComboBox,		"state")
-		self.userClient = self.findChild(QtWidgets.QLineEdit,		"client")
-
 		# set entryDate to current Date
 		self.userEntryDate.setDate(QtCore.QDate.currentDate())
 
 		# populate Bu combobox
+		if len(self.dbContent["BUs"]) == 0:
+			self.bu.addItem("None")
 		for buName in self.dbContent["BUs"]:
 			self.bu.addItem(buName)
 
@@ -33,33 +32,21 @@ class Diag_addING_Window(QtWidgets.QDialog):
 		for manager in IngAffaire.getNames(self.database):
 			self.userManager.addItem(manager)
 
-		# populate State combobox
-		for state in ING.STATES:
-			self.userState.addItem(ING.STATES[state])
-
 		# update entry date with current day
 		self.userEntryDate.setDate(QtCore.QDate().currentDate())
 
-		# populate ING_managerComboList
-		#self._populate_managerList()
+		self.userInputCheck = False # store condition to exit the loop in case of wrong input
 
-		userInputsCheck = False # store condition to exit the loop in case of wrong input
-
-		while not userInputsCheck:
+		while not self.userInputCheck:
 			# prompt dialog
 			resp = self.exec_()
 			# get user input
-			self.userNameText = self.userName.text()
-			self.userclientText = self.userClient.text()
-			self.userStateText = self.userState.currentText()
+			self.userNameText = self.userName.text().replace(',', ' ')
 			self.userManagerText = self.userManager.currentText()
 			#check user input
 			if resp == QtWidgets.QDialog.Accepted:
 				if self.userNameText == "":
 					self._sendAlert("error - Name cannot be empty")
-					continue
-				if self.userStateText == ING.STATES[ING.ING_STATE_MI] and self.userclientText == "":
-					self._sendAlert("error - Client's Name cannot be empty if " + self.userNameText + " is in a mission")
 					continue
 				if self.userNameText != "":
 					# check if name already exists
@@ -67,7 +54,7 @@ class Diag_addING_Window(QtWidgets.QDialog):
 						self._sendAlert("error - UserName already exist")
 						continue
 					else:
-						userInputsCheck = True
+						self.userInputCheck = True
 						self._addIng()
 			# case cancel
 			else:
@@ -91,10 +78,8 @@ class Diag_addING_Window(QtWidgets.QDialog):
 
 	def _addIng(self):
 		#add new ING to db
-
 		newIng = ING(self.userNameText, self.database)
 		newIng.setEntryDate(self.userEntryDate.date().toString("dd.MM.yyyy"))
-
 		# if ING as manager => add ing in InChargeOF (IA)
 		if self.userManagerText != "None":
 			manager = IngAffaire.load(self.database, self.userManagerText)
@@ -104,10 +89,6 @@ class Diag_addING_Window(QtWidgets.QDialog):
 			newIng.setManagerName(self.userManagerText)
 		else:
 			newIng.setManagerName(None)
-		self.database.write(self.dbContent)
-		newIng.setCurrentClient(self.userclientText)
-		for state in ING.STATES:
-			if self.userStateText == ING.STATES[state]:
-				newIng.setState(state)
+		newIng.setState(ING.ING_STATE_IC)
 		newIng.setBu(self.bu.currentText())
 		newIng.save()
