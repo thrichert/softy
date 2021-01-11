@@ -7,7 +7,7 @@ from Classes.Diag_business_ING_startMission import Diag_business_ING_startMissio
 from Classes.Diag_business_ING_stopMission import Diag_business_ING_stopMission
 from Classes.Diag_delete_ing_ia import Diag_delete_ing_ia
 from Classes.Diag_addBU_Window import Diag_addBU_Window
-
+from Classes.User import User
 from Classes.IngAffaire import IngAffaire
 from Classes.ING import ING
 
@@ -20,6 +20,9 @@ class MainWindow(QtWidgets.QMainWindow):
 		super(MainWindow, self).__init__()
 		uic.loadUi("./sources/views/mainWindow.ui", self)
 		self.database = database
+		self.dbContent = self.database.getContent()
+
+
 		self.today = QtCore.QDate.currentDate()
 
 		# check data
@@ -29,11 +32,22 @@ class MainWindow(QtWidgets.QMainWindow):
 		#	tab : ADM
 		#================================================
 
+		# ADM Bu Qtableview
+		self.Bus_list = self.findChild(QtWidgets.QTableView, "BUsList")
+		self.Bus_list.clicked.connect(self.on_BUs_list_selected)
+		header = self.Bus_list.horizontalHeader()
+		header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+		self.Bus_list.verticalHeader().hide()
+		self.Bus_list.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+		self.Bus_list.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 		# ADM Business Engineer table
 		self.IAs_list = self.findChild(QtWidgets.QTableView, "IAsList")
+		self.IAs_list.clicked.connect(self.on_IAs_list_selected)
 		header = self.IAs_list.horizontalHeader()
 		header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 		self.IAs_list.verticalHeader().hide()
+		self.IAs_list.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+		self.IAs_list.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
 		# ADM Engineer table
 		self.INGs_list = self.findChild(QtWidgets.QTableView, "INGsList")
@@ -41,29 +55,41 @@ class MainWindow(QtWidgets.QMainWindow):
 		header = self.INGs_list.horizontalHeader()
 		header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 		self.INGs_list.verticalHeader().hide()
-		# PushButton Action
-		self.addNew_IA = self.findChild(QtWidgets.QPushButton, "addNewIA")
-		self.addNew_IA.clicked.connect(self.on_addNew_IA)
-		self.addNew_ING = self.findChild(QtWidgets.QPushButton, "addNewING")
-		self.addNew_ING.clicked.connect(self.on_addNew_ING)
+		self.INGs_list.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+		self.INGs_list.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
+		# PushButton Action
 
 		self.addNew_Bu = self.findChild(QtWidgets.QPushButton, "addNewBU")
 		self.addNew_Bu.clicked.connect(self.on_addNew_BU)
+		self.addNew_IA = self.findChild(QtWidgets.QPushButton, "addNewIA")
+		self.addNew_IA.clicked.connect(self.on_addNew_IA)
+		self.addNew_IA.setEnabled(False)
+		self.addNew_ING = self.findChild(QtWidgets.QPushButton, "addNewING")
+		self.addNew_ING.clicked.connect(self.on_addNew_ING)
+		self.addNew_ING.setEnabled(False)
+
+		if len(self.dbContent["BUs"]) != 0:
+			self.addNew_IA.setEnabled(True)
+			self.addNew_ING.setEnabled(True)
 
 		self.remove_ING = self.findChild(QtWidgets.QPushButton, "delete_ing_pushbutton")
 		self.remove_ING.clicked.connect(self.on_remove_Ing)
 		self.remove_ING.setEnabled(False)
 
+		self.remove_IA = self.findChild(QtWidgets.QPushButton, "delete_ia_pushbutton")
+		self.remove_IA.clicked.connect(self.on_remove_IA)
+		self.remove_IA.setEnabled(False)
 
-		# setup Bu Qtableview
-		self.Bus_listView = self.findChild(QtWidgets.QTableView, "BUsList")
-		self.Bus_listView.verticalHeader().hide()
+		self.remove_BU = self.findChild(QtWidgets.QPushButton, "delete_bu_pushbutton")
+		self.remove_BU.clicked.connect(self.on_remove_BU)
+		self.remove_BU.setEnabled(False)
+
+		# setup BUs QtableView
 		self.BUs_model = QtGui.QStandardItemModel()
 		self.BUs_model.setColumnCount(1)
 		self.BUs_model.setHeaderData(0, QtCore.Qt.Horizontal, 'Name')
-		header = self.Bus_listView.horizontalHeader()
-		header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+		self.Bus_list.setModel(self.BUs_model)
 
 
 		# setup IAs QtableView
@@ -72,14 +98,35 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.IAs_model.setHeaderData(0, QtCore.Qt.Horizontal, "Name")
 		self.IAs_model.setHeaderData(1, QtCore.Qt.Horizontal, "Role")
 		self.IAs_model.setHeaderData(2, QtCore.Qt.Horizontal, 'Business Unit')
+		self.IAs_list.setModel(self.IAs_model)
 
 		# setup INGs QtableView
 		self.INGs_model = QtGui.QStandardItemModel()
 		self.INGs_model.setColumnCount(1)
 		self.INGs_model.setHeaderData(0, QtCore.Qt.Horizontal, "Name")
+		self.INGs_list.setModel(self.INGs_model)
 
+		#init model
 
+		for bu in self.dbContent["BUs"]:
+			self.BUs_model.appendRow(QtGui.QStandardItem(bu))
+		self.BUs_model.rowsInserted.connect(self._mainViewUpdate)
+		self.BUs_model.rowsRemoved.connect(self._mainViewUpdate)
 
+		for ia in self.dbContent["IAs"]:
+			r = []
+			ia = IngAffaire.load(self.database, self.dbContent["IAs"][ia]["name"])
+			r.append(QtGui.QStandardItem(ia.getName()))
+			r.append(QtGui.QStandardItem(ia.getRole()))
+			r.append(QtGui.QStandardItem(ia.getBu()))
+			self.IAs_model.appendRow(r)
+		self.IAs_model.rowsInserted.connect(self._mainViewUpdate)
+		self.IAs_model.rowsRemoved.connect(self._mainViewUpdate)
+
+		for ing in self.dbContent["INGs"]:
+			self.INGs_model.appendRow(QtGui.QStandardItem(self.dbContent["INGs"][ing]["name"]))
+		self.INGs_model.rowsInserted.connect(self._mainViewUpdate)
+		self.INGs_model.rowsRemoved.connect(self._mainViewUpdate)
 
 		#================================================
 		#	tab : activite
@@ -101,10 +148,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
 		# setup IAs list
 		self.activity_IAs_list = self.findChild(QtWidgets.QTableView, "Activity_IAsList")
+		header = self.activity_IAs_list.horizontalHeader()
+		header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+		self.activity_IAs_list.verticalHeader().hide()
 		self.update_activity_IA_list()
 		self.activity_IAs_list.clicked.connect(self.on_activity_IAselected)
+		self.activity_IAs_list.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
 		# setup activity QtableView
+		self.activity_list = self.findChild(QtWidgets.QTableView, "activityList")
+		header = self.activity_list.horizontalHeader()
+		header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+		self.activity_list.verticalHeader().hide()
+
 		self.activity_model = QtGui.QStandardItemModel()
 		self.activity_model.setColumnCount(10)
 		headers = ["Prosp", "Nvx Besoin","Besoins Actifs", "KLIF", "START", "Push DC", "EC1", "EC2", "PPLES", "RH+"]
@@ -132,13 +188,17 @@ class MainWindow(QtWidgets.QMainWindow):
 		#================================================
 		#	tab : Business
 		#================================================
+		self.business_ing_table_model = None
 
 		# get Bu selector element
 		self.business_BuSelector = self.findChild(QtWidgets.QComboBox, "business_BuComboBox")
+		self.business_BuSelector.setModel(self.BUs_model)
 		self.business_BuSelector.currentIndexChanged.connect(self.on_business_BU_selected)
+
 		# get current Month info
 		self.business_current_date_selector = self.findChild(QtWidgets.QDateEdit, "business_current_month_select")
 		self.business_current_date_selector.dateChanged.connect(self.on_business_date_changed)
+		self.business_current_date_selector.setDate(QtCore.QDate().currentDate())
 		self.business_current_date = self.business_current_date_selector.date()
 
 		# setup pushbutton callback
@@ -148,108 +208,116 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.ingStopMission.clicked.connect(self.on_business_ingStopMission)
 
 		# setup Business Mission & ingenieur Monthly QtableView
-		self.business_ing_table_model = None
 		self.update_business_ing_table()
-
-		# setup ING list view model
-		self.INGs_list_model = QtGui.QStandardItemModel()
-		self.INGs_list_model.setColumnCount(1)
-		self.INGs_list_model.setHeaderData(0, QtCore.Qt.Horizontal, "Name")
 
 		# populate ING list in QtableView
 		self.business_Ing_list = self.findChild(QtWidgets.QTableView, "business_Ing_list")
 		self.business_Ing_list.clicked.connect(self.on_business_Ingselected)
-		self.update_business_ING_listView()
-
-		# ADM
-		# populate list in QtableViews
-		self.update_IA_tableView()
-		self.update_ING_tableView()
-		self.update_BU_tableView()
-
+		header = self.business_Ing_list.horizontalHeader()
+		header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+		self.business_Ing_list.verticalHeader().hide()
+		self.business_Ing_list.setItemDelegate(businessIngListDelegate(parent=self))
+		self.on_business_BU_selected()
 		# Activity
 		# populate BU selector
-		self.update_activity_BuComboBox()
+		self.activity_detailBU_selector.setModel(self.BUs_model)
 
 		# Business
 		# popuplate BU Selector
-		self.update_business_BuComboBox()
+		self.activity_globalBU_selector.setModel(self.BUs_model)
 
 		# display window
 		self.show()
 
+	def _mainViewUpdate(self):
+		self.update_activity_IA_list()
+		self.on_business_BU_selected()
+
+
 	def on_addNew_BU(self):
 		self.add_BU_Diag = Diag_addBU_Window("./sources/views/add_BU_Diag.ui", self.database)
-		self.update_BU_tableView()
-		self.update_activity_BuComboBox()
-		self.update_business_BuComboBox()
+		if (self.add_BU_Diag.added):
+			self.BUs_model.appendRow(QtGui.QStandardItem(self.add_BU_Diag.BuNameText))
+			self.addNew_IA.setEnabled(True)
+			self.addNew_ING.setEnabled(True)
+
 
 	def on_addNew_IA(self):
 		self.add_IA_Diag = Diag_addIA_Window("./sources/views/add_IA_Diag.ui", self.database)
-		self.update_IA_tableView()
+		if (self.add_IA_Diag.added):
+			#add ia in model
+			ia = IngAffaire.load(self.database, self.add_IA_Diag.userNameText)
+			r = [ QtGui.QStandardItem(ia.getName()),
+				QtGui.QStandardItem(ia.getRole()),
+				QtGui.QStandardItem(ia.getBu())]
+			self.IAs_model.appendRow(r)
+
 
 	def on_addNew_ING(self):
 		self.add_ING_Diag = Diag_addING_Window("./sources/views/add_ING_Diag.ui", self.database)
-		self.update_ING_tableView()
-		self.update_business_ING_listView()
+		if self.add_ING_Diag.userInputCheck:
+			self.INGs_model.appendRow(QtGui.QStandardItem(self.add_ING_Diag.userNameText))
 		self.update_business_ing_table()
+		#self.on_business_BU_selected()
 
 	def on_remove_Ing(self):
-		self.remove_ING_Diag = Diag_delete_ing_ia("./sources/Views/deleteING_IA.ui", self.selectedIng, self.database)
-		# update Views
-		self.update_ING_tableView()
-		self.update_business_ING_listView()
+		res = Diag_delete_ing_ia("./sources/Views/deleteING_IA.ui", User._ING, self.ingSelected[0].data(), self.database)
+		if (res.deleted):
+			self.INGs_model.removeRow(self.ingSelected[0].row())
 		self.update_business_ing_table()
 
-	def update_BU_tableView(self):
+	def on_remove_IA(self):
+		res = Diag_delete_ing_ia("./sources/Views/deleteING_IA.ui", User._IA, self.iaSelected[0].data(), self.database)
+		if (res.deleted):
+			self.IAs_model.removeRow(self.iaSelected[0].row())
+
+	def on_remove_BU(self):
 		content = self.database.getContent()
-		for rowID, Bu in enumerate(content["BUs"]):
-			self.BUs_model.setItem(rowID, 0, QtGui.QStandardItem(Bu))
-		# update Others Combo Box
+		buText = self.buSelected[0].data()
+		if buText != None:
+			for nIa in content["BUs"][buText]["IAs"]:
+				ia = IngAffaire.load(self.database, nIa)
+				if ia != None:
+					ia.removeFromBu(buText)
+					ia.save()
+				else:
+					print ("error - remove BU - ia {} not found".format(nIa))
+			for nIng in content["BUs"][buText]["INGs"]:
+				ing = ING.load(self.database, nIng)
+				if ing != None:
+					ing.removeFromBu(buText)
+					ing.save()
+				else:
+					print ("error - remove BU - ing {} not found".format(nIa))
+			del content["BUs"][buText]
+			self.database.write(content)
+			self.BUs_model.removeRow(self.buSelected[0].row())
+			if len(content["BUs"]) == 0:
+				self.addNew_IA.setEnabled(False)
+				self.addNew_ING.setEnabled(False)
 
-		# set model in view
-		self.Bus_listView.setModel(self.BUs_model)
-
-	def update_IA_tableView(self):
-		# get info from DB
-		content = self.database.getContent()
-
-		self.IAs_list.setModel(self.IAs_model)
-		for rowID, IA in enumerate(content["IAs"]):
-			name = QtGui.QStandardItem(content["IAs"][IA]["name"])
-			role = QtGui.QStandardItem(content["IAs"][IA]["role"])
-			bu = QtGui.QStandardItem("".join(content["IAs"][IA]["BU"]))
-			self.IAs_model.setItem(rowID, 0, name)
-			self.IAs_model.setItem(rowID, 1, role)
-			self.IAs_model.setItem(rowID, 2, bu)
-		self.update_activity_IA_list()
-
-	def update_ING_tableView(self):
-		content = self.database.getContent()
-		self.INGs_model.clear()
-		for colID, ING in enumerate(content["INGs"]):
-			name = QtGui.QStandardItem(content["INGs"][ING]["name"])
-			self.INGs_model.setItem(colID, 0, name)
-		self.INGs_list.setModel(self.INGs_model)
 
 	def update_activity_tableView(self, data, IA_name, week_year):
-		self.activity_list = self.findChild(QtWidgets.QTableView, "activityList")
-
 		# get IA's ID from his name
 		ia = IngAffaire.load(self.database, self.selectedIA)
-
 		activities = ia.getActivitiesFromWeek(str(self.currentWeek[0])+"_"+str(self.currentWeek[1]))
-
 		for i in range(self.activity_model.columnCount()):
 			item =  QtGui.QStandardItem(str(activities[i]))
 			item.setTextAlignment(QtCore.Qt.AlignCenter)
 			self.activity_model.setItem(0, i, item)
-
 		self.activity_list.setModel(self.activity_model)
 
 	def on_Ings_list_selected(self):
-		self.selectedIng = self.INGs_list.currentIndex().data()
+		self.ingSelected = self.INGs_list.selectionModel().selectedRows()
 		self.remove_ING.setEnabled(True)
+
+	def on_IAs_list_selected(self):
+		self.iaSelected = self.IAs_list.selectionModel().selectedRows()
+		self.remove_IA.setEnabled(True)
+
+	def on_BUs_list_selected(self):
+		self.buSelected = self.Bus_list.selectionModel().selectedRows()
+		self.remove_BU.setEnabled(True)
 
 	def on_activity_IAselected(self):
 		self.selectedIA = self.activity_IAs_list.currentIndex().data()
@@ -257,19 +325,6 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.update_activity_tableView(self.database, self.selectedIA, self.currentWeek)
 		ia = IngAffaire.load(self.database, self.selectedIA)
 		self._activity_update_metrics(ia)
-
-	def update_activity_BuComboBox(self):
-		content = self.database.getContent()
-		self.activity_detailBU_selector.clear()
-		self.activity_globalBU_selector.clear()
-		for i, bu in enumerate(content["BUs"]):
-			self.activity_detailBU_selector.insertItem(i, bu)
-			self.activity_globalBU_selector.insertItem(i, bu)
-
-	def update_business_BuComboBox(self):
-		content = self.database.getContent()
-		for i, bu in enumerate(content["BUs"]):
-			self.business_BuSelector.insertItem(i, bu)
 
 	def on_calendar_select(self):
 		selectedDay = self.activity_calendar.selectedDate()
@@ -286,6 +341,10 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.activity_IAs_list_model = QtGui.QStandardItemModel()
 		for name in content["BUs"][selectedBU]["IAs"]:
 			self.activity_IAs_list_model.appendRow(QtGui.QStandardItem(name))
+
+		self.activity_IAs_list_model.setColumnCount(1)
+		self.activity_IAs_list_model.setHeaderData(0, QtCore.Qt.Horizontal, "Name")
+
 		self.activity_IAs_list.setModel(self.activity_IAs_list_model)
 
 	def on_activity_table_dataChange(self, index):
@@ -301,7 +360,7 @@ class MainWindow(QtWidgets.QMainWindow):
 			ia = IngAffaire.load(self.database, self.selectedIA)
 			if ia == None:
 				alert = QtWidgets.QMessageBox()
-				alert.setText("error - " + self.selectedIA + "Not find in database...")
+				alert.setText("error - " + self.selectedIA + "Not found in database...")
 				alert.exec_()
 				return
 
@@ -352,32 +411,13 @@ class MainWindow(QtWidgets.QMainWindow):
 	def on_business_Ingselected(self):
 		self.business_Ing_selected = self.business_Ing_list.currentIndex().data()
 		# check ing state
-		ing_id = ING.getIngIDfromName(self.business_Ing_selected, self.database)
-		content = self.database.getContent()
-		if content['INGs'][ing_id]['state'] == "with Mission":
+		ing = ING.load(self.database, self.business_Ing_selected)
+		if ing.getState() == ING.STATES[ING.ING_STATE_MI]:
 			self.ingStopMission.setEnabled(True)
 			self.ingStartMission.setEnabled(False)
 		else:
 			self.ingStartMission.setEnabled(True)
 			self.ingStopMission.setEnabled(False)
-
-	def update_business_ING_listView(self):
-		content = self.database.getContent()
-		self.business_Ing_list.setModel(self.INGs_list_model)
-		self.INGs_list_model.clear()
-		today = QtCore.QDate.currentDate()
-		for colID, ing in enumerate(content["INGs"]):
-			if self.business_BuSelector.currentText() in content["INGs"][ing]["BU"]:
-				name = QtGui.QStandardItem(content["INGs"][ing]["name"])
-				if content["INGs"][ing]["state"] in ING.STATES[ING.ING_STATE_MI]:
-					stopMissionDate = QtCore.QDate().fromString(content["INGs"][ing]["mission_Stop"], "dd.MM.yyyy")
-					if today.daysTo(stopMissionDate) > 3:
-						name.setBackground(QtGui.QBrush(QtCore.Qt.green))
-					elif today.daysTo(stopMissionDate) <= 3:
-						name.setBackground(QtGui.QBrush(QtCore.Qt.yellow))
-				else:
-					name.setBackground(QtGui.QBrush(QtCore.Qt.red))
-				self.INGs_list_model.setItem(colID, 0, name)
 
 	def update_business_ing_table(self):
 		if self.business_ing_table_model != None:
@@ -394,7 +434,6 @@ class MainWindow(QtWidgets.QMainWindow):
 			cellContentText = itemAtWeekNumber.text() + ",\n" + ingData["name"]
 		else:
 			cellContentText = ingData["name"]
-		print("cell", cellContentText)
 		# add new
 		newIngItem = QtGui.QStandardItem( cellContentText )
 		newIngItem.setBackground(QtGui.QBrush(QtCore.Qt.green))
@@ -421,35 +460,33 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.business_ing_table_model.setItem(rowIndex, 3,  QtGui.QStandardItem(str(totalNewIng)))
 
 	def populate_ing_business_ingIO(self):
-		currentYear = self.business_current_date.weekNumber()[1]
 		content = self.database.getContent()
 		currentBU = self.business_BuSelector.currentText()
 		for ing in content["INGs"]:
 			if any(bu == currentBU for bu in content["INGs"][ing]["BU"]):
 				entryDate = QtCore.QDate.fromString(content['INGs'][ing]['entryDate'], "dd.MM.yyyy")
 				entryDateWeekNbr = str(entryDate.weekNumber()[0])
-				entryDateYearNbr = entryDate.weekNumber()[1]
+				entryDateYearNbr = str(entryDate.weekNumber()[1])
 				for i in range(self.business_ing_table_model.rowCount()):
 					currentRowVerticalHeader = self.business_ing_table_model.verticalHeaderItem(i).text()
-					if currentRowVerticalHeader == entryDateWeekNbr and currentYear == entryDateYearNbr:
+					if currentRowVerticalHeader == entryDateYearNbr+":"+entryDateWeekNbr: #and currentYear == entryDateYearNbr:
 						self._add_ing_enter_ingIO(content["INGs"][ing], i)
-
 
 
 		for ing in content['archive']["INGs"]:
 			if any(bu == currentBU for bu in content['archive']["INGs"][ing]["BU"]):
 				entryDate = QtCore.QDate.fromString(content['archive']["INGs"][ing]['entryDate'], "dd.MM.yyyy")
-				exitDate = QtCore.QDate.fromString(content['archive']["INGs"][ing]['endContract'], "dd.MM.yyyy")
+				exitDate = QtCore.QDate.fromString(content['archive']["INGs"][ing]['exitDate'], "dd.MM.yyyy")
 				exitDateWeekNbr = str(exitDate.weekNumber()[0])
-				exitDateYearNbr = exitDate.weekNumber()[1]
+				exitDateYearNbr = str(exitDate.weekNumber()[1])
 				entryDateWeekNbr = str(entryDate.weekNumber()[0])
-				entryDateYearNbr = entryDate.weekNumber()[1]
+				entryDateYearNbr = str(entryDate.weekNumber()[1])
 				for i in range(self.business_ing_table_model.rowCount()):
 					currentRowVerticalHeader = self.business_ing_table_model.verticalHeaderItem(i).text()
-					if currentRowVerticalHeader == entryDateWeekNbr and currentYear == entryDateYearNbr:
+					if currentRowVerticalHeader == entryDateYearNbr+":"+entryDateWeekNbr: #and currentYear == entryDateYearNbr:
 						self._add_ing_enter_ingIO(content['archive']["INGs"][ing], i)
-					if currentRowVerticalHeader == exitDateWeekNbr and currentYear == exitDateYearNbr:
-						self._add_ing_exit_ingIO(content['arczhive']["INGs"][ing], i)
+					if currentRowVerticalHeader == exitDateYearNbr+":"+exitDateWeekNbr: # and currentYear == exitDateYearNbr:
+						self._add_ing_exit_ingIO(content['archive']["INGs"][ing], i)
 
 	def _add_ing_start_mission(self, ingData, rowIndex):
 		#	get previous data in cell
@@ -479,63 +516,70 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.business_ing_table_model.setItem(rowIndex, 6, newIngItem)
 		cellContent = self.business_ing_table_model.item(rowIndex, 6)
 		if cellContent != None:
-			totalNewIng = len(cellContent.text().split(','))
+			totalNewIng = cellContent.text().count(',') + 1
 			self.business_ing_table_model.setItem(rowIndex, 7,  QtGui.QStandardItem(str(totalNewIng)))
 
 	def populate_ing_business_MissionIO(self, ing_id=None):
-		currentYear = self.business_current_date.weekNumber()[1]
 		content = self.database.getContent()
+		currentBU = self.business_BuSelector.currentText()
+
 		for ing in content["INGs"]:
-			if not 'mission_Start' in content["INGs"][ing].keys() and not 'mission_Stop' in content["INGs"][ing].keys():
-				continue
-			entryDate = QtCore.QDate.fromString(content['INGs'][ing]['mission_Start'], "dd.MM.yyyy")
-			exitDate = QtCore.QDate.fromString(content['INGs'][ing]['mission_Stop'], "dd.MM.yyyy")
+			if any(bu == currentBU for bu in content["INGs"][ing]["BU"]):
 
-			entryDateWeekNbr = str(entryDate.weekNumber()[0])
-			entryDateYearNbr = entryDate.weekNumber()[1]
+				if not 'mission_Start' in content["INGs"][ing].keys() and not 'mission_Stop' in content["INGs"][ing].keys():
+					continue
+				entryDate = QtCore.QDate.fromString(content['INGs'][ing]['mission_Start'], "dd.MM.yyyy")
+				exitDate = QtCore.QDate.fromString(content['INGs'][ing]['mission_Stop'], "dd.MM.yyyy")
 
-			exitDateWeekNbr = str(exitDate.weekNumber()[0])
-			exitDateYearNbr = exitDate.weekNumber()[1]
+				entryDateWeekNbr = str(entryDate.weekNumber()[0])
+				entryDateYearNbr = str(entryDate.weekNumber()[1])
 
-			for i in range (self.business_ing_table_model.rowCount()):
-				currentRowVerticalHeader = self.business_ing_table_model.verticalHeaderItem(i).text()
-				if currentRowVerticalHeader == entryDateWeekNbr and currentYear == entryDateYearNbr:
-					self._add_ing_start_mission(content["INGs"][ing], i)
-				if  currentRowVerticalHeader == exitDateWeekNbr and currentYear == exitDateYearNbr:
-					self._add_ing_stop_mission(content["INGs"][ing], i)
+				exitDateWeekNbr = str(exitDate.weekNumber()[0])
+				exitDateYearNbr = str(exitDate.weekNumber()[1])
+
+				for i in range (self.business_ing_table_model.rowCount()):
+					currentRowVerticalHeader = self.business_ing_table_model.verticalHeaderItem(i).text()
+					if currentRowVerticalHeader == entryDateYearNbr+":"+entryDateWeekNbr: #and currentYear == entryDateYearNbr:
+						self._add_ing_start_mission(content["INGs"][ing], i)
+					if  currentRowVerticalHeader == exitDateYearNbr+":"+exitDateWeekNbr: #and currentYear == exitDateYearNbr:
+						self._add_ing_stop_mission(content["INGs"][ing], i)
 
 	def on_business_ingStartMission(self):
 		self.diag_business_startMission = Diag_business_ING_startMission("./sources/views/ing_start_mission.ui", self.business_Ing_selected, self.database)
-		self.update_business_ING_listView()
 		self.update_business_ing_table()
 
 	def on_business_ingStopMission(self):
 		self.diag_business_stopMission = Diag_business_ING_stopMission("./sources/views/ing_stop_mission.ui", self.business_Ing_selected, self.database)
-		self.update_business_ING_listView()
 		self.update_business_ing_table()
 
 	def on_business_BU_selected(self):
-		self.update_business_ING_listView()
+		content = self.database.getContent()
+		selectedBU = self.business_BuSelector.currentText()
+		if selectedBU == "" or selectedBU == None:
+			return
+		self.business_Ing_list_model = QtGui.QStandardItemModel()
+		for name in content["BUs"][selectedBU]["INGs"]:
+			self.business_Ing_list_model.appendRow(QtGui.QStandardItem(name))
+		self.business_Ing_list_model.setColumnCount(1)
+		self.business_Ing_list_model.setHeaderData(0, QtCore.Qt.Horizontal, "Name")
+		self.business_Ing_list.setModel(self.business_Ing_list_model)
 		self.update_business_ing_table()
 
 	def util_getWeeknumbers(self):
 		self.business_current_date = self.business_current_date_selector.date()
 		verticalHeaderLabels = []
-		for i in range (-1, 2):
-			tmpDate = QtCore.QDate(self.business_current_date.year(), self.business_current_date.month() + i, 1)
-			nbrDayInMonth = tmpDate.daysInMonth()
-			weekCount = nbrDayInMonth / 7
-			i = 0
-			while weekCount > 0:
-				if str(tmpDate.weekNumber()[0] + i) not in verticalHeaderLabels:
-					verticalHeaderLabels.append(str(tmpDate.weekNumber()[0] + i))
-				weekCount -= 1
-				i += 1
-
+		currentMonth = QtCore.QDate(self.business_current_date.year(), self.business_current_date.month(), 1)
+		prevMonth = currentMonth.addMonths(-1)
+		nextMonth = currentMonth.addMonths(2)
+		currentMonth = prevMonth
+		while currentMonth.daysTo(nextMonth) >= 0:
+			verticalHeaderLabels.append(str(currentMonth.weekNumber()[1])+":"+str(currentMonth.weekNumber()[0]))
+			currentMonth = currentMonth.addDays(7)
 		return verticalHeaderLabels
 
 	def on_business_date_changed(self):
-		self.business_ing_table_model.clear()
+		if self.business_ing_table_model != None:
+			self.business_ing_table_model.clear()
 		self.business_ing_table_model = self.init_business_table()
 		# populate table
 		self.populate_ing_business_MissionIO()
@@ -583,3 +627,30 @@ class MainWindow(QtWidgets.QMainWindow):
 		# 	alert.exec_()
 
 
+class businessIngListDelegate(QtWidgets.QItemDelegate):
+	"""
+	abstract class to render listed engineer name in the business tab
+	"""
+	def __init__(self, parent=None, *args):
+		QtWidgets.QItemDelegate.__init__(self, parent, *args)
+		self.database = parent.database
+
+	def paint(self, painter, option, index):
+		painter.save()
+		ing = ING.load(self.database, index.data())
+		if ing != None:
+			if option.state & QtWidgets.QStyle.State_Selected:
+				painter.setBrush(QtGui.QBrush(QtGui.QColor(QtCore.Qt.lightGray)))
+				painter.drawRect(option.rect)
+			today = QtCore.QDate.currentDate()
+			if ing.getState() == ING.STATES[ING.ING_STATE_MI]:
+				stopMissionDate = QtCore.QDate().fromString(ing.getMissionStop(), "dd.MM.yyyy")
+				remains = today.daysTo(stopMissionDate)
+				if remains > 3:
+					painter.setPen(QtCore.Qt.darkGreen)
+				elif remains <= 3:
+					painter.setPen(QtCore.Qt.darkYellow)
+			else:
+				painter.setPen(QtCore.Qt.darkRed)
+		painter.drawText(option.rect, QtCore.Qt.AlignCenter, index.data())
+		painter.restore()
