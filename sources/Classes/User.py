@@ -43,32 +43,55 @@ class User(object):
 						"BU"	:		[]
 					}
 		if idx == None:
-			dictKeys = self.__dbContent[userType].keys()
-			archiveDictKeys = self.__dbContent["archive"][userType].keys()
-
+			dictKeys = [int(k) for k in self.__dbContent[userType].keys()]
+			archiveDictKeys = [int(k) for k in self.__dbContent["archive"][userType].keys()]
 			if len(dictKeys) != 0 and len(archiveDictKeys) != 0:
-				self.__profile["idx"] = int(max( max(dictKeys), max(archiveDictKeys))) + 1
+				self.__profile["idx"] = max( max(dictKeys), max(archiveDictKeys)) + 1
 			elif len(dictKeys) == 0 and len(archiveDictKeys) != 0:
-				self.__profile["idx"] = int(max('0', max(archiveDictKeys))) + 1
+				self.__profile["idx"] = max(archiveDictKeys) + 1
 			elif len(archiveDictKeys) == 0 and len(dictKeys) != 0:
-				self.__profile["idx"] = int(max(max(dictKeys), '0')) + 1
+				self.__profile["idx"] = max(dictKeys) + 1
 			else:
 				self.__profile["idx"] = 0
 		else:
-			self.__profile = self.__dbContent[userType][str(idx)]
+			if str(idx) in self.__dbContent[userType].keys():
+				self.__profile = self.__dbContent[userType][str(idx)]
+			elif str(idx) in self.__dbContent["archive"][userType].keys():
+				self.__profile = self.__dbContent["archive"][userType][str(idx)]
 
 
 	def setName(self, name):
 		self.__profile["name"] = name
 
+	def getName(self):
+		return self.__profile["name"]
+
 	def setEntryDate(self, entryDate):
 		self.__profile["entryDate"] = entryDate
+
+	def getEntryDate(self):
+		return self.__profile["entryDate"]
 
 	def setExitDate(self, exitDate):
 		self.__profile["exitDate"] = exitDate
 
+	def getExitDate(self):
+		return self.__profile["exitDate"]
+
 	def setBu(self, bu):
-		self.__profile["BU"].append(bu)
+		if bu != "None":
+			if not bu in self.__dbContent["BUs"].keys():
+				self.__dbContent["BUs"][bu] = {"INGs":[], "IAs":[]}
+			if not self.__profile["name"] in self.__dbContent["BUs"][bu][self.__profile["type"]]:
+				self.__dbContent["BUs"][bu][self.__profile["type"]].append(self.__profile["name"])
+			self.__profile["BU"].append(bu)
+
+	def getBu(self):
+		return ', '.join(self.__profile["BU"])
+
+	def removeFromBu(self, bu):
+		if bu in self.__profile["BU"]:
+			self.__profile["BU"].pop(self.__profile["BU"].index(bu))
 
 	def save(self):
 		currentDbContent = self.__database.getContent()
@@ -87,12 +110,26 @@ class User(object):
 	def getType(self):
 		return self.__profile["type"]
 
-	def toArchive(self):
+	def toArchive(self, motif):
 		t = self.__profile["type"]
 		i = str(self.__profile["idx"])
+		# save current state
+		self.save()
+		# store in archive
 		currentDbContent = self.__database.getContent()
 		currentDbContent["archive"][t][i] = currentDbContent[t][i]
+		currentDbContent["archive"][t][i]["motif"] = motif
+		# remove from BUs
+		for bu in self.__profile["BU"]:
+			currentDbContent["BUs"][bu][t].pop(currentDbContent["BUs"][bu][t].index(self.__profile["name"]))
+		# remove from valid list
+		currentDbContent[t].pop(i)
+
 		self.__database.write(currentDbContent)
+
+	def delete(self, exitDate, motif):
+		self.setExitDate(exitDate)
+		self.toArchive(motif)
 
 	def __str__(self):
 		return json.dumps(self.__profile, sort_keys=True, indent=4)
