@@ -71,7 +71,8 @@ class IngAffaire(User):
 		self.bu = None
 		self.manager = None
 
-		self.__profile["activities"] = {}
+		if idx == None:
+			self.__profile["activities"] = {}
 		self.__profile["txTranfo"] = [0 for i in range(5)]
 		self.__profile["avgPerf"] = [0 for i in range(10)]
 		self.__profile["prev_perf"] = {
@@ -82,6 +83,11 @@ class IngAffaire(User):
 	def putInChargeOf(self, name, type):
 		self.inChargeOf[type].append(name)
 		self.__profile["inChargeOf"] = self.inChargeOf
+
+
+	def setManagerID(self, managerID):
+		self.managerID = managerID
+		self.__profile["managerID"] = managerID
 
 	def setManagerName(self, managerName):
 		self.manager = managerName
@@ -102,8 +108,12 @@ class IngAffaire(User):
 						exp3=self._IA_ROLE_IA_COACH,
 						expV3=self.ROLES[self._IA_ROLE_IA_COACH]))
 
+	def getRole(self):
+		return IngAffaire.ROLES[self.__profile["role"]]
+
 	def addActivity(self, week_year, activity):
 		self.__profile["activities"][week_year] = activity
+
 
 	def getAllActivities(self):
 		return self.__profile["activities"]
@@ -162,15 +172,6 @@ class IngAffaire(User):
 	def saveCurrentMetrics(self, week_year):
 		self.__profile["prev_perf"]["txTranfo"][week_year] = self.__profile["txTransfo"]
 		self.__profile["prev_perf"]["avg_perf"][week_year] = self.__profile["avg_perf"]
-
-
-	@staticmethod
-	def getIngAffaireIDfromName(name, DB):
-		if name == None:
-			return None
-		content = DB.getContent()
-		out =  [k for k in content["IAs"].keys() if content["IAs"][k]["name"] == name]
-		return out[0]
 
 	@staticmethod
 	def getNames(database):
