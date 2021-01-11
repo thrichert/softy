@@ -23,18 +23,21 @@ class ING(User):
 		self.__profile = self.getProfile()
 		self.__name__ = "ING"
 		self.setName(name)
-		self.__profile["prev_mission"] = {}
-		self.state = None
-		self.entryDate = None
-		self.managerID = None
-		self.manager = None
-		self.bu = None
-		self.current_client = None
-		self.mission_Start = None
-		self.mission_Stop = None
+		if idx == None:
+			self.__profile["prev_mission"] = {}
+			self.__profile["state"] = None
+			self.state = None
+			self.entryDate = None
+			self.managerID = None
+			self.manager = None
+			self.bu = None
+			self.current_client = None
+			self.mission_Start = None
+			self.mission_Stop = None
 
 	def setState(self, ing_state):
 		if ing_state in self.STATES.keys():
+			self.state = ing_state
 			self.__profile["state"] = self.STATES[ing_state]
 		else:
 			print ("[{Obj}-{fctName}] - warning unknowned state : {val}\nExpected :[{exp1}:{expV1}, {exp2}:{expV2}, {exp3}:{expV3}]".format(
@@ -48,6 +51,12 @@ class ING(User):
 						exp3=self.ING_STATE_MI,
 						expV3=self.STATES[self.ING_STATE_MI]))
 
+	def getState(self):
+		return self.__profile["state"]
+
+	def getStateKey(self):
+		return list(ING.STATES.values()).index(self.__profile["state"])
+
 	def setManagerID(self, managerID):
 		self.managerID = managerID
 		self.__profile["managerID"] = managerID
@@ -60,28 +69,54 @@ class ING(User):
 		self.current_client = clientName
 		self.__profile["current_client"] = clientName
 
-	def setMissionStartDate(self, startDate):
+	def getCurrentClient(self):
+		return self.__profile["current_client"]
+
+	def setMissionStart(self, startDate):
 		self.mission_Start = startDate
 		self.__profile["mission_Start"] = startDate
+
+	def getMissionStart(self):
+		return self.__profile["mission_Start"]
 
 	def setMissionStop(self, stopDate):
 		self.mission_Stop = stopDate
 		self.__profile["mission_Stop"] = stopDate
 
-	def saveCurrentMission(self):
-		l = len(self.__profile["prev_mission"])
-		self.__profile["prev_mission"][l] = {
-			"mission_Start":	self.mission_Start,
-			"mission_Stop":		self.mission_Stop,
-			"client":			self.current_client}
+	def getMissionStop(self):
+		return  self.__profile["mission_Stop"]
 
-	@staticmethod
-	def getIngIDfromName(name, DB):
-		if name == None:
-			return None
-		content = DB.getContent()
-		out =  [k for k in content["INGs"].keys() if content["INGs"][k]["name"] == name]
-		return out[0]
+	def saveCurrentMission(self, missionStop=None):
+		l = len(self.__profile["prev_mission"])
+		if missionStop == None:
+			self.__profile["prev_mission"][l] = {
+				"mission_Start":	self.getMissionStart(),
+				"mission_Stop":		self.getMissionStop(),
+				"client":			self.getCurrentClient()}
+		else:
+			self.__profile["prev_mission"][l] = {
+				"mission_Start":	self.getMissionStart(),
+				"mission_Stop":		missionStop,
+				"client":			self.getCurrentClient()}
+
+	def startMission(self, startDate, stopDate, client):
+		if self.getState() == ING.STATES[ING.ING_STATE_MI]:
+			print ("error - stop mission first")
+			return
+		self.setMissionStart(startDate)
+		self.setMissionStop(stopDate)
+		self.setCurrentClient(client)
+		self.setState(ING.ING_STATE_MI)
+
+	def stopMission(self, nextState, stopDate=None):
+		# if self.getState() != ING.STATES[ING.ING_STATE_MI]:
+		# 	print ('error - mission not started')
+		# 	return
+		self.setState(nextState)
+		self.saveCurrentMission(stopDate)
+		self.setMissionStop(None)
+		self.setMissionStart(None)
+		self.setCurrentClient(None)
 
 	@staticmethod
 	def getNames(database):
@@ -96,6 +131,9 @@ class ING(User):
 	def load(database, name):
 		currentDbContent = database.getContent()
 		for i, ing in currentDbContent["INGs"].items():
+			if ing['name'] == name:
+				return ING(ing["name"], database, ing["idx"])
+		for i, ing in currentDbContent["archive"]["INGs"].items():
 			if ing['name'] == name:
 				return ING(ing["name"], database, ing["idx"])
 		return None
