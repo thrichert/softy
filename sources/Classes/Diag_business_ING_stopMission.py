@@ -11,29 +11,27 @@ class Diag_business_ING_stopMission(QtWidgets.QDialog):
 		super(Diag_business_ING_stopMission, self).__init__()
 		uic.loadUi(viewPath, self)
 
-		content = database.getContent()
-		ingID = ING.getIngIDfromName(selectedIng, database)
-		ingData = content["INGs"][ingID]
-
-
+		ing = ING.load(database, selectedIng)
 		# modify group box name
 		self.groupboxName = self.findChild(QtWidgets.QGroupBox,		"Ing_groupBox")
-		self.groupboxName.setTitle(ingData["name"])
+		self.groupboxName.setTitle(ing.getName())
 
 		# auto fill data if available
 		self.ingState = self.findChild(QtWidgets.QComboBox,			"ing_State_comboBox")
-		self.currentClient = self.findChild(QtWidgets.QLineEdit,	"currentClient")
 		self.missionStopDate = self.findChild(QtWidgets.QDateEdit,	"stopDate")
 
-		self.ingState.setCurrentText(ingData["state"])
-		self.missionStopDate.setDate(QtCore.QDate().fromString(ingData["mission_Stop"], "dd.MM.yyyy"))
-		self.currentClient.setText(ingData["current_client"])
+		for idx, state in ING.STATES.items():
+			if idx != ING.ING_STATE_MI:
+				self.ingState.addItem(state)
+
+		self.missionStopDate.setDate(QtCore.QDate().fromString(ing.getMissionStop(), "dd.MM.yyyy"))
 
 		resp = self.exec_()
 
 		if resp == QtWidgets.QDialog.Accepted:
-			ingID = ING.getIngIDfromName(selectedIng, database)
-			missionStartDate = QtCore.QDate().fromString(content["INGs"][ingID]["mission_Start"],"dd.MM.yyyy")
+			missionStartDate = QtCore.QDate().fromString(ing.getMissionStart(), "dd.MM.yyyy")
+			nextState = self.ingState.currentText()
+			nextStateKey = list(ING.STATES.values()).index(nextState)
 			#check user input
 			dateCheck = False
 			if (self.missionStopDate.date() < missionStartDate):
@@ -44,10 +42,10 @@ class Diag_business_ING_stopMission(QtWidgets.QDialog):
 				dateCheck = True
 			# add info to BD
 			if dateCheck:
-				content["INGs"][ingID]["current_client"] = ""
-				content["INGs"][ingID]["mission_Stop"] = self.missionStopDate.date().toString("dd.MM.yyyy")
-				content["INGs"][ingID]["state"] = self.ingState.currentText()
-				database.write(content)
+				#save previous missions data:
+				ing.saveCurrentMission()
+				ing.stopMission(int(nextStateKey), self.missionStopDate.date().toString('dd.MM.yyyy'))
+				ing.save()
 
 		else:
 			print ("Nop")
