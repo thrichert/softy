@@ -143,8 +143,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
 		self.activity_detailBU_selector = self.findChild(QtWidgets.QComboBox, "detail_BU_comboBox")
 		self.activity_globalBU_selector = self.findChild(QtWidgets.QComboBox, "global_BU_comboBox")
+		self.activity_detailBU_selector.currentIndexChanged.connect(self.update_activity_IAMGR_list)
 
-		self.activity_detailBU_selector.currentIndexChanged.connect(self.update_activity_IA_list)
+
+		# get Manager selector
+
+		self.activity_manager_selector = self.findChild(QtWidgets.QComboBox, "managerList")
+		self.activity_manager_selector.currentIndexChanged.connect(self.update_activity_IA_list)
+
 
 		# setup IAs list
 		self.activity_IAs_list = self.findChild(QtWidgets.QTableView, "Activity_IAsList")
@@ -230,7 +236,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.show()
 
 	def _mainViewUpdate(self):
-		self.update_activity_IA_list()
+		self.update_activity_IAMGR_list()
 		self.on_business_BU_selected()
 
 
@@ -332,20 +338,44 @@ class MainWindow(QtWidgets.QMainWindow):
 		if self.selectedIA != None:
 			self.update_activity_tableView(self.database, self.selectedIA, self.currentWeek)
 
-	def update_activity_IA_list(self):
+	def update_activity_IAMGR_list(self):
 		content = self.database.getContent()
-		#get current selected BU
 		selectedBU = self.activity_detailBU_selector.currentText()
-		if selectedBU == '' or selectedBU == None:
+		if selectedBU == '' or selectedBU == None or selectedBU == "None":
+			self.activity_manager_selector.clear()
 			return
-		self.activity_IAs_list_model = QtGui.QStandardItemModel()
-		for name in content["BUs"][selectedBU]["IAs"]:
-			self.activity_IAs_list_model.appendRow(QtGui.QStandardItem(name))
+		self.activity_IAMGR_list_model = QtGui.QStandardItemModel()
+		for iaInBu in content["BUs"][selectedBU]["IAs"]:
+			ia = IngAffaire.load(self.database, iaInBu)
+			if (ia.isManagerIA()):
+				self.activity_IAMGR_list_model.appendRow(QtGui.QStandardItem(iaInBu))
+		self.activity_manager_selector.setModel(self.activity_IAMGR_list_model)
+		self.update_activity_IA_list()
 
+	def update_activity_IA_list(self):
+		self.activity_IAs_list_model = QtGui.QStandardItemModel()
+		self.activity_IAs_list.setModel(self.activity_IAs_list_model)
 		self.activity_IAs_list_model.setColumnCount(1)
 		self.activity_IAs_list_model.setHeaderData(0, QtCore.Qt.Horizontal, "Name")
 
-		self.activity_IAs_list.setModel(self.activity_IAs_list_model)
+		content = self.database.getContent()
+		#get current selected BU
+		selectedBU = self.activity_detailBU_selector.currentText()
+		if selectedBU == '' or selectedBU == None or selectedBU == "None":
+			self.activity_IAs_list_model.clear()
+			return
+		selectedMGR = self.managerList.currentText()
+		if selectedMGR == '' or selectedMGR == None or selectedMGR == "None":
+			# if no manager in BU display all ia
+			self.activity_IAs_list_model.clear()
+			for iaInBu in content["BUs"][selectedBU]["IAs"]:
+				ia = IngAffaire.load(self.database, iaInBu)
+				self.activity_IAs_list_model.appendRow(QtGui.QStandardItem(iaInBu))
+			return
+		for iaInBu in content["BUs"][selectedBU]["IAs"]:
+			ia = IngAffaire.load(self.database, iaInBu)
+			if ia.getManagerName() == selectedMGR:
+				self.activity_IAs_list_model.appendRow(QtGui.QStandardItem(iaInBu))
 
 	def on_activity_table_dataChange(self, index):
 		# check user input
