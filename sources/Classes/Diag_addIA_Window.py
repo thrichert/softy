@@ -104,7 +104,7 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 			self.IAs_checkBox = []
 			i = 0
 			for ia in IAs:
-				if IAs[ia]["manager"] == "None" and self.userRole.currentIndex() > int(IAs[ia]["role"]):
+				if IAs[ia]["manager"] == None and self.userRole.currentIndex() > int(IAs[ia]["role"]):
 					self.IAs_checkBox.append(QtWidgets.QCheckBox(IAs[ia]["name"]))
 					self.scrollAreaLayout_IAs.addWidget(self.IAs_checkBox[i])
 					i += 1
