@@ -29,8 +29,7 @@ class Diag_addING_Window(QtWidgets.QDialog):
 			self.bu.addItem(buName)
 
 		# populate manager combobox
-		for manager in IngAffaire.getNames(self.database):
-			self.userManager.addItem(manager)
+		self._populate_managerList()
 
 		# update entry date with current day
 		self.userEntryDate.setDate(QtCore.QDate().currentDate())
@@ -59,7 +58,6 @@ class Diag_addING_Window(QtWidgets.QDialog):
 			# case cancel
 			else:
 				break
-
 
 	def _populate_managerList(self):
 		IAsNamelist = []
