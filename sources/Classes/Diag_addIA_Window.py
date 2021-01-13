@@ -142,7 +142,7 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 				managedIa.setManagerName(self.userNameText)
 				managedIa.setManagerID(self.newIA.getID())
 				managedIa.save()
-				self.newIA.putInChargeOf(ia.text(), User._IA)
+				self.newIA.putInChargeOf(ia.text(), "IAs")
 		# update other ING whose are now managed by this new IA
 		for ing in self.INGs_checkBox:
 			if ing.isChecked():
@@ -150,6 +150,6 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 				managedIng.setManagerName(self.userNameText)
 				managedIng.setManagerID(self.newIA.getID())
 				managedIng.save()
-				self.newIA.putInChargeOf(ing.text(), User._ING)
+				self.newIA.putInChargeOf(ing.text(), "INGs")
 		self.newIA.setBu(self.buText)
 		self.newIA.save()
