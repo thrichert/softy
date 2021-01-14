@@ -65,6 +65,12 @@ class ING(User):
 		self.manager = managerName
 		self.__profile["manager"] = managerName
 
+	def getManagerName(self):
+		return self.__profile["manager"]
+
+	def getManagerID(self):
+		return self.__profile["managerID"]
+
 	def setCurrentClient(self, clientName):
 		self.current_client = clientName
 		self.__profile["current_client"] = clientName
