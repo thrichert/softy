@@ -57,10 +57,9 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 				self.scrollAreaLayout_INGs.addWidget(self.INGs_checkBox[i])
 				i += 1
 
-		IAs = self.dbContent["IAs"]
-		for ia in IAs:
-			if IAs[ia]["role"] != "IA":
-				self.userManager.addItem(IAs[ia]["name"])
+
+		self._on_userRole_changed()
+
 		userInputsCheck = False # store condition to exit the loop in case of wrong input
 
 		while not userInputsCheck:
@@ -97,7 +96,7 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 
 	def _on_userRole_changed(self):
 		self._clearLayout(self.scrollAreaLayout_IAs)
-
+		self.userManager.clear()
 		self.dbContent = self.database.getContent()
 		IAs = self.dbContent["IAs"]
 
@@ -106,6 +105,7 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 			i = 0
 			for ia in IAs:
 				if IAs[ia]["manager"] == None and self.userRole.currentIndex() > int(IAs[ia]["role"]):
+					self.userManager.addItem(IAs[ia]["name"])
 					self.IAs_checkBox.append(QtWidgets.QCheckBox(IAs[ia]["name"]))
 					self.scrollAreaLayout_IAs.addWidget(self.IAs_checkBox[i])
 					i += 1
@@ -124,7 +124,7 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 		self.added = True
 		self.newIA = IngAffaire(self.userNameText, self.database)
 		self.newIA.setEntryDate(self.userEntryDateText)
-		if self.ManagerText != "None":
+		if self.ManagerText != "":
 			manager = IngAffaire.load(self.database, self.ManagerText)
 			manager.putInChargeOf(self.userNameText, self.newIA.getType())
 			manager.save()
