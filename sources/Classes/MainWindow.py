@@ -164,7 +164,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 		# get Manager selector
 
-		self.activity_manager_selector = self.findChild(QtWidgets.QComboBox, "managerList")
+		self.activity_manager_selector = self.findChild(QtWidgets.QComboBox, "activityManagerList")
 		self.activity_manager_selector.currentIndexChanged.connect(self.update_activity_IA_list)
 
 
@@ -216,6 +216,10 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.business_BuSelector = self.findChild(QtWidgets.QComboBox, "business_BuComboBox")
 		self.business_BuSelector.setModel(self.BUs_model)
 		self.business_BuSelector.currentIndexChanged.connect(self.on_business_BU_selected)
+
+		# get Manager selector element
+		self.business_managerSelector = self.findChild(QtWidgets.QComboBox, "businessManagerList")
+		self.business_managerSelector.currentIndexChanged.connect(self.on_business_manager_selected)
 
 		# get current Month info
 		self.business_current_date_selector = self.findChild(QtWidgets.QDateEdit, "business_current_month_select")
@@ -380,7 +384,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		if selectedBU == '' or selectedBU == None or selectedBU == "None":
 			self.activity_IAs_list_model.clear()
 			return
-		selectedMGR = self.managerList.currentText()
+		selectedMGR = self.activity_manager_selector.currentText()
 		if selectedMGR == '' or selectedMGR == None or selectedMGR == "None":
 			# if no manager in BU display all ia
 			self.activity_IAs_list_model.clear()
@@ -598,18 +602,43 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.diag_business_stopMission = Diag_business_ING_stopMission("./sources/views/ing_stop_mission.ui", self.business_Ing_selected, self.database)
 		self.update_business_ing_table()
 
-	def on_business_BU_selected(self):
+	def on_business_manager_selected(self):
+		self.business_Ing_list_model = QtGui.QStandardItemModel()
+		self.business_Ing_list_model.setColumnCount(1)
+		self.business_Ing_list_model.setHeaderData(0, QtCore.Qt.Horizontal, "Ings-Name")
+		self.business_Ing_list.setModel(self.business_Ing_list_model)
 		content = self.database.getContent()
 		selectedBU = self.business_BuSelector.currentText()
 		if selectedBU == "" or selectedBU == None:
 			return
-		self.business_Ing_list_model = QtGui.QStandardItemModel()
-		for name in content["BUs"][selectedBU]["INGs"]:
-			self.business_Ing_list_model.appendRow(QtGui.QStandardItem(name))
-		self.business_Ing_list_model.setColumnCount(1)
-		self.business_Ing_list_model.setHeaderData(0, QtCore.Qt.Horizontal, "Name")
-		self.business_Ing_list.setModel(self.business_Ing_list_model)
+		selectedMGR = self.business_managerSelector.currentText()
+		# if no manager in Bu display all ing
+		if selectedMGR == '' or selectedMGR == None or selectedMGR == "None":
+			self.business_Ing_list_model.clear()
+			for ingInBu in content["BUs"][selectedBU]["INGs"]:
+				ing = ING.load(self.database, ingInBu)
+				self.business_Ing_list_model.appendRow(QtGui.QStandardItem(ingInBu))
+			return
+		for ingInBu in content["BUs"][selectedBU]["INGs"]:
+			ing = ING.load(self.database, ingInBu)
+			if ing.getManagerName() == selectedMGR:
+				self.business_Ing_list_model.appendRow(QtGui.QStandardItem(ingInBu))
 		self.update_business_ing_table()
+
+
+	def on_business_BU_selected(self):
+		content = self.database.getContent()
+		selectedBU = self.business_BuSelector.currentText()
+		if selectedBU == "" or selectedBU == None:
+			self.business_managerSelector.clear()
+			return
+		self.business_manager_list_model = QtGui.QStandardItemModel()
+		for iaInBu in content["BUs"][selectedBU]["IAs"]:
+			ia = IngAffaire.load(self.database, iaInBu)
+			if (ia.isManagerING()):
+				self.business_manager_list_model.appendRow(QtGui.QStandardItem(iaInBu))
+		self.business_managerSelector.setModel(self.business_manager_list_model)
+		self.on_business_manager_selected()
 
 	def util_getWeeknumbers(self):
 		self.business_current_date = self.business_current_date_selector.date()
