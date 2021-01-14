@@ -13,11 +13,13 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 		self.database = database
 		self.dbContent = database.getContent()
 		self.added = False
+		self.buText = ''
 		# get Element
 
 		self.userName = self.findChild(QtWidgets.QLineEdit,			"name")
 		self.userEntryDate = self.findChild(QtWidgets.QDateEdit,	"entryDate")
 		self.bu = self.findChild(QtWidgets.QComboBox,				"BU")
+
 		self.userRole = self.findChild(QtWidgets.QComboBox,			"role")
 		self.userRole.currentIndexChanged.connect(self._on_userRole_changed)
 		self.userManager = self.findChild(QtWidgets.QComboBox,		"manager")
@@ -49,6 +51,7 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 		for i, bu in self.dbContent["BUs"].items():
 			self.bu.addItem(i)
 
+
 		INGs = self.dbContent["INGs"]
 		i = 0
 		for ing in INGs:
@@ -56,7 +59,6 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 				self.INGs_checkBox.append(QtWidgets.QCheckBox(INGs[ing]["name"]))
 				self.scrollAreaLayout_INGs.addWidget(self.INGs_checkBox[i])
 				i += 1
-
 
 		self._on_userRole_changed()
 
@@ -98,17 +100,21 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 		self._clearLayout(self.scrollAreaLayout_IAs)
 		self.userManager.clear()
 		self.dbContent = self.database.getContent()
-		IAs = self.dbContent["IAs"]
+		if self.buText != '':
+			IAs = self.dbContent["BUs"][self.buText]
+		else:
+			IAs = self.dbContent["IAs"]
 
-		if self.userRole.currentText() != IngAffaire.ROLES[IngAffaire._IA_ROLE_IA]:
-			self.IAs_checkBox = []
-			i = 0
-			for ia in IAs:
-				if IAs[ia]["manager"] == None and self.userRole.currentIndex() > int(IAs[ia]["role"]):
-					self.userManager.addItem(IAs[ia]["name"])
-					self.IAs_checkBox.append(QtWidgets.QCheckBox(IAs[ia]["name"]))
-					self.scrollAreaLayout_IAs.addWidget(self.IAs_checkBox[i])
-					i += 1
+		#if self.userRole.currentText() != IngAffaire.ROLES[IngAffaire._IA_ROLE_IA]:
+		self.IAs_checkBox = []
+		i = 0
+		for ia in IAs:
+			if IAs[ia]["manager"] == None and self.userRole.currentIndex() > int(IAs[ia]["role"]):
+				self.IAs_checkBox.append(QtWidgets.QCheckBox(IAs[ia]["name"]))
+				self.scrollAreaLayout_IAs.addWidget(self.IAs_checkBox[i])
+				i += 1
+			if IAs[ia]["role"] > self.userRole.currentIndex():
+				self.userManager.addItem(IAs[ia]["name"])
 
 	def _clearLayout(self, layout):
 		if layout is not None:
@@ -141,6 +147,7 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 				managedIa =  IngAffaire.load(self.database, ia.text())
 				managedIa.setManagerName(self.userNameText)
 				managedIa.setManagerID(self.newIA.getID())
+				managedIa.setBu(self.buText)
 				managedIa.save()
 				self.newIA.putInChargeOf(ia.text(), "IAs")
 		# update other ING whose are now managed by this new IA
@@ -149,6 +156,7 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 				managedIng = ING.load(self.database, ing.text())
 				managedIng.setManagerName(self.userNameText)
 				managedIng.setManagerID(self.newIA.getID())
+				managedIng.setBu(self.buText)
 				managedIng.save()
 				self.newIA.putInChargeOf(ing.text(), "INGs")
 		self.newIA.setBu(self.buText)
