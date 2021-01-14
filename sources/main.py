@@ -7,14 +7,26 @@ from Classes.MainWindow import MainWindow
 from Classes.ING import ING
 from Classes.IngAffaire import IngAffaire
 
-if __name__ == "__main__":
-	# init DB
-	database = DB("./DataBase/db.json")
-	# archive Db if 1 day since last save
-	database.saveDb('./Database/')
+def resource_path(relative_path):
+	try:
+		# PyInstaller creates a temp folder and stores path in _MEIPASS
+		base_path = sys._MEIPASS
+	except Exception:
+		base_path = os.path.abspath(".")
+	return os.path.join(base_path, relative_path)
 
-	# check data consistency
+
+if __name__ == "__main__":
+
+	# init DB
+	database = DB()
+	# TODO archive Db if 1 day since last save
+	database.saveDb()
+
+	# TODO check data consistency
 
 	app = QtWidgets.QApplication(sys.argv)
 	mainWindow = MainWindow(database)
 	app.exec_()
+
+

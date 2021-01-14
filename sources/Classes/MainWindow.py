@@ -11,14 +11,30 @@ from Classes.User import User
 from Classes.IngAffaire import IngAffaire
 from Classes.ING import ING
 
+def resource_path(relative_path):
+	try:
+		# PyInstaller creates a temp folder and stores path in _MEIPASS
+		base_path = sys._MEIPASS
+	except Exception:
+		base_path = os.path.abspath(".")
+
+	return os.path.join(base_path, relative_path)
+
 
 class MainWindow(QtWidgets.QMainWindow):
 	"""
 	Class that handle the main window
 	"""
+
+	__PATH_MAINWINDOW_UI	= resource_path("./views/mainWindow.ui")
+	__PATH_ADDBU_UI			= resource_path("./views/add_BU_Diag.ui")
+	__PATH_ADDIA_UI			= resource_path("./views/add_IA_Diag.ui")
+	__PATH_ADDING_UI		= resource_path("./views/add_ING_Diag.ui")
+	__PATH_DELUSER_UI		= resource_path("./Views/deleteING_IA.ui")
+
 	def __init__(self, database):
 		super(MainWindow, self).__init__()
-		uic.loadUi("./sources/views/mainWindow.ui", self)
+		uic.loadUi(MainWindow.__PATH_MAINWINDOW_UI, self)
 		self.database = database
 		self.dbContent = self.database.getContent()
 
@@ -241,7 +257,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 	def on_addNew_BU(self):
-		self.add_BU_Diag = Diag_addBU_Window("./sources/views/add_BU_Diag.ui", self.database)
+		self.add_BU_Diag = Diag_addBU_Window(MainWindow.__PATH_ADDBU_UI, self.database)
 		if (self.add_BU_Diag.added):
 			self.BUs_model.appendRow(QtGui.QStandardItem(self.add_BU_Diag.BuNameText))
 			self.addNew_IA.setEnabled(True)
@@ -249,7 +265,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 	def on_addNew_IA(self):
-		self.add_IA_Diag = Diag_addIA_Window("./sources/views/add_IA_Diag.ui", self.database)
+		self.add_IA_Diag = Diag_addIA_Window(MainWindow.__PATH_ADDIA_UI, self.database)
 		if (self.add_IA_Diag.added):
 			#add ia in model
 			ia = IngAffaire.load(self.database, self.add_IA_Diag.userNameText)
@@ -260,20 +276,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 	def on_addNew_ING(self):
-		self.add_ING_Diag = Diag_addING_Window("./sources/views/add_ING_Diag.ui", self.database)
+		self.add_ING_Diag = Diag_addING_Window(MainWindow.__PATH_ADDING_UI, self.database)
 		if self.add_ING_Diag.userInputCheck:
 			self.INGs_model.appendRow(QtGui.QStandardItem(self.add_ING_Diag.userNameText))
 		self.update_business_ing_table()
 		#self.on_business_BU_selected()
 
 	def on_remove_Ing(self):
-		res = Diag_delete_ing_ia("./sources/Views/deleteING_IA.ui", User._ING, self.ingSelected[0].data(), self.database)
+		res = Diag_delete_ing_ia(MainWindow.__PATH_DELUSER_UI, User._ING, self.ingSelected[0].data(), self.database)
 		if (res.deleted):
 			self.INGs_model.removeRow(self.ingSelected[0].row())
 		self.update_business_ing_table()
 
 	def on_remove_IA(self):
-		res = Diag_delete_ing_ia("./sources/Views/deleteING_IA.ui", User._IA, self.iaSelected[0].data(), self.database)
+		res = Diag_delete_ing_ia(MainWindow.__PATH_DELUSER_UI, User._IA, self.iaSelected[0].data(), self.database)
 		if (res.deleted):
 			self.IAs_model.removeRow(self.iaSelected[0].row())
 

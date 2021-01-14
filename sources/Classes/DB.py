@@ -1,12 +1,25 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import sys, os, json, platform, time
 
+def resource_path(relative_path):
+	try:
+		# PyInstaller creates a temp folder and stores path in _MEIPASS
+		base_path = sys._MEIPASS
+	except Exception:
+		base_path = os.path.abspath(".")
+
+	return os.path.join(base_path, relative_path)
+
 class DB(object):
-	def __init__(self, path):
-		self.path = path
+
+	__PATH_DIR_DB	= resource_path("./DataBase/")
+	__PATH_BD		= resource_path("./DataBase/db.json")
+
+	def __init__(self):
+		self.path = DB.__PATH_BD
 		now = QtCore.QDate().currentDate()
 
-		if not os.path.exists(path):
+		if not os.path.exists(DB.__PATH_BD):
 			self.data = {
 				"lastDBsave": now.toString("dd.MM.yyyy"),
 				"BUs":{},
@@ -18,10 +31,13 @@ class DB(object):
 					"BUs":{}
 				}
 			}
-			with open(path, 'w') as f:
+			# create dir if not exist
+			if not os.path.exists(DB.__PATH_DIR_DB):
+				os.makedirs(DB.__PATH_DIR_DB)
+			with open(DB.__PATH_BD, 'w') as f:
 				f.write(json.dumps(self.data, sort_keys=True, indent=4))
 		else:
-			with open(path, 'r') as f:
+			with open(DB.__PATH_BD, 'r') as f:
 				self.data = json.load(f)
 
 	def write(self, data):
@@ -34,11 +50,11 @@ class DB(object):
 	def getContent(self):
 		return self.data
 
-	def saveDb(self, path):
+	def saveDb(self):
 		now = QtCore.QDate().currentDate()
 		lastSave = QtCore.QDate().fromString(self.data["lastDBsave"], "dd.MM.yyyy")
 		if now > lastSave:
-			with open(path + now.toString('yyyy_MM_dd_saveDB.json'), 'w') as f:
+			with open(DB.__PATH_DIR_DB + now.toString('yyyy_MM_dd_saveDB.json'), 'w') as f:
 				f.write(json.dumps(self.data, sort_keys=True, indent=4))
 		# remove current
 		os.remove(self.path)
