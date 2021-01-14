@@ -84,7 +84,8 @@ class User(object):
 				self.__dbContent["BUs"][bu] = {"INGs":[], "IAs":[]}
 			if not self.__profile["name"] in self.__dbContent["BUs"][bu][self.__profile["type"]]:
 				self.__dbContent["BUs"][bu][self.__profile["type"]].append(self.__profile["name"])
-			self.__profile["BU"].append(bu)
+			if not bu in self.__profile["BU"]:
+				self.__profile["BU"].append(bu)
 
 	def getBu(self):
 		return ', '.join(self.__profile["BU"])
