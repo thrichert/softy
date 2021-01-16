@@ -31,6 +31,9 @@ class MainWindow(QtWidgets.QMainWindow):
 	__PATH_ADDIA_UI			= resource_path("./views/add_IA_Diag.ui")
 	__PATH_ADDING_UI		= resource_path("./views/add_ING_Diag.ui")
 	__PATH_DELUSER_UI		= resource_path("./Views/deleteING_IA.ui")
+	__PATH_STARTMISSION_UI	= resource_path("./views/ing_start_mission.ui")
+	__PATH_STOPMISSION_UI	= resource_path("./views/ing_stop_mission.ui")
+
 
 	def __init__(self, database):
 		super(MainWindow, self).__init__()
@@ -256,16 +259,27 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.show()
 
 	def _mainViewUpdate(self):
+		print ("mainViewUpdate")
+		self.business_BuSelector.setCurrentIndex(0)
+
 		self.update_activity_IAMGR_list()
 		self.on_business_BU_selected()
 
+		self.update_business_ing_table()
 
 	def on_addNew_BU(self):
+		print ("on_addNew_BU [start] - business_BuSelector count = ", self.business_BuSelector.count())
+		print ("on_addNew_BU [start] - selectedBu item Data (0) = ", self.business_BuSelector.itemData(0))
+
 		self.add_BU_Diag = Diag_addBU_Window(MainWindow.__PATH_ADDBU_UI, self.database)
 		if (self.add_BU_Diag.added):
 			self.BUs_model.appendRow(QtGui.QStandardItem(self.add_BU_Diag.BuNameText))
 			self.addNew_IA.setEnabled(True)
 			self.addNew_ING.setEnabled(True)
+		print ("on_addNew_BU [end] - business_BuSelector count = ", self.business_BuSelector.count())
+
+		self.business_BuSelector.setCurrentIndex(0)
+		print ("on_addNew_BU [end] - selectedBu currentText = ", self.business_BuSelector.currentText())
 
 
 	def on_addNew_IA(self):
@@ -291,13 +305,19 @@ class MainWindow(QtWidgets.QMainWindow):
 		if (res.deleted):
 			self.INGs_model.removeRow(self.ingSelected[0].row())
 		self.update_business_ing_table()
+		if self.INGs_model.rowCount() == 0:
+			self.remove_ING.setEnabled(False)
 
 	def on_remove_IA(self):
 		res = Diag_delete_ing_ia(MainWindow.__PATH_DELUSER_UI, User._IA, self.iaSelected[0].data(), self.database)
 		if (res.deleted):
 			self.IAs_model.removeRow(self.iaSelected[0].row())
-
+		if self.IAs_model.rowCount() == 0:
+			self.remove_IA.setEnabled(False)
 	def on_remove_BU(self):
+		print ("on_remove_BU [start] - selectedBu item Data (0) = ", self.business_BuSelector.itemData(0))
+		print ("on_remove_BU [start] - selectedBu count = ", self.business_BuSelector.count())
+
 		content = self.database.getContent()
 		buText = self.buSelected[0].data()
 		if buText != None:
@@ -321,6 +341,9 @@ class MainWindow(QtWidgets.QMainWindow):
 			if len(content["BUs"]) == 0:
 				self.addNew_IA.setEnabled(False)
 				self.addNew_ING.setEnabled(False)
+			self.business_BuSelector.setCurrentIndex(0)
+			print ("on_remove_BU [end] - selectedBu item Data (0) = ", self.business_BuSelector.itemData(0))
+			print ("on_remove_BU [end] - selectedBu count = ", self.business_BuSelector.count())
 
 
 	def update_activity_tableView(self, data, IA_name, week_year):
@@ -470,12 +493,14 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.ingStopMission.setEnabled(False)
 
 	def update_business_ing_table(self):
+		print ("update_business_ing_table - in")
 		if self.business_ing_table_model != None:
 			self.business_ing_table_model.clear()
 		self.business_ing_table_model = self.init_business_table()
 		self.populate_ing_business_ingIO()
 		self.populate_ing_business_MissionIO()
 		self.business_ing_table.setModel(self.business_ing_table_model)
+		print ("update_business_ing_table - out")
 
 	def _add_ing_enter_ingIO(self, ingData, rowIndex):
 		#	get previous data in cell
@@ -510,8 +535,11 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.business_ing_table_model.setItem(rowIndex, 3,  QtGui.QStandardItem(str(totalNewIng)))
 
 	def populate_ing_business_ingIO(self):
+		print ("populate_ing_business_ingIO - in ")
+
 		content = self.database.getContent()
 		currentBU = self.business_BuSelector.currentText()
+		print ("populate_ing_business_ingIO - currentBu = ", currentBU)
 		for ing in content["INGs"]:
 			if any(bu == currentBU for bu in content["INGs"][ing]["BU"]):
 				entryDate = QtCore.QDate.fromString(content['INGs'][ing]['entryDate'], "dd.MM.yyyy")
@@ -537,6 +565,7 @@ class MainWindow(QtWidgets.QMainWindow):
 						self._add_ing_enter_ingIO(content['archive']["INGs"][ing], i)
 					if currentRowVerticalHeader == exitDateYearNbr+":"+exitDateWeekNbr: # and currentYear == exitDateYearNbr:
 						self._add_ing_exit_ingIO(content['archive']["INGs"][ing], i)
+		print ("populate_ing_business_ingIO - out ")
 
 	def _add_ing_start_mission(self, ingData, rowIndex):
 		#	get previous data in cell
@@ -583,23 +612,70 @@ class MainWindow(QtWidgets.QMainWindow):
 
 				entryDateWeekNbr = str(entryDate.weekNumber()[0])
 				entryDateYearNbr = str(entryDate.weekNumber()[1])
-
 				exitDateWeekNbr = str(exitDate.weekNumber()[0])
 				exitDateYearNbr = str(exitDate.weekNumber()[1])
 
 				for i in range (self.business_ing_table_model.rowCount()):
 					currentRowVerticalHeader = self.business_ing_table_model.verticalHeaderItem(i).text()
-					if currentRowVerticalHeader == entryDateYearNbr+":"+entryDateWeekNbr: #and currentYear == entryDateYearNbr:
+					# draw current
+					if currentRowVerticalHeader == entryDateYearNbr+":"+entryDateWeekNbr:
 						self._add_ing_start_mission(content["INGs"][ing], i)
-					if  currentRowVerticalHeader == exitDateYearNbr+":"+exitDateWeekNbr: #and currentYear == exitDateYearNbr:
+					if  currentRowVerticalHeader == exitDateYearNbr+":"+exitDateWeekNbr:
 						self._add_ing_stop_mission(content["INGs"][ing], i)
+					# draw passed:
+					for pMission in content["INGs"][ing]["prev_mission"]:
+						entryDate = QtCore.QDate.fromString(content['INGs'][ing]["prev_mission"][pMission]['mission_Start'], "dd.MM.yyyy")
+						exitDate = QtCore.QDate.fromString(content['INGs'][ing]["prev_mission"][pMission]['mission_Stop'], "dd.MM.yyyy")
+
+						entryDateWeekNbr = str(entryDate.weekNumber()[0])
+						entryDateYearNbr = str(entryDate.weekNumber()[1])
+						exitDateWeekNbr = str(exitDate.weekNumber()[0])
+						exitDateYearNbr = str(exitDate.weekNumber()[1])
+						if currentRowVerticalHeader == entryDateYearNbr+":"+entryDateWeekNbr:
+							self._add_ing_start_mission(content["INGs"][ing], i)
+							self._add_ing_stop_mission(content["INGs"][ing], i)
+
+
+		for ing in content["archive"]["INGs"]:
+			if any(bu == currentBU for bu in content["archive"]["INGs"][ing]["BU"]):
+
+				if not 'mission_Start' in content["archive"]["INGs"][ing].keys() and not 'mission_Stop' in content["archive"]["INGs"][ing].keys():
+					continue
+				entryDate = QtCore.QDate.fromString(content["archive"]['INGs'][ing]['mission_Start'], "dd.MM.yyyy")
+				exitDate = QtCore.QDate.fromString(content["archive"]['INGs'][ing]['mission_Stop'], "dd.MM.yyyy")
+
+				entryDateWeekNbr = str(entryDate.weekNumber()[0])
+				entryDateYearNbr = str(entryDate.weekNumber()[1])
+				exitDateWeekNbr = str(exitDate.weekNumber()[0])
+				exitDateYearNbr = str(exitDate.weekNumber()[1])
+
+				for i in range (self.business_ing_table_model.rowCount()):
+					currentRowVerticalHeader = self.business_ing_table_model.verticalHeaderItem(i).text()
+					# draw current
+					if currentRowVerticalHeader == entryDateYearNbr+":"+entryDateWeekNbr:
+						self._add_ing_start_mission(content["archive"]["INGs"][ing], i)
+					if  currentRowVerticalHeader == exitDateYearNbr+":"+exitDateWeekNbr:
+						self._add_ing_stop_mission(content["archive"]["INGs"][ing], i)
+					# draw passed:
+					for pMission in content["archive"]["INGs"][ing]["prev_mission"]:
+						entryDate = QtCore.QDate.fromString(content["archive"]['INGs'][ing]["prev_mission"][pMission]['mission_Start'], "dd.MM.yyyy")
+						exitDate = QtCore.QDate.fromString(content["archive"]['INGs'][ing]["prev_mission"][pMission]['mission_Stop'], "dd.MM.yyyy")
+
+						entryDateWeekNbr = str(entryDate.weekNumber()[0])
+						entryDateYearNbr = str(entryDate.weekNumber()[1])
+						exitDateWeekNbr = str(exitDate.weekNumber()[0])
+						exitDateYearNbr = str(exitDate.weekNumber()[1])
+						if currentRowVerticalHeader == entryDateYearNbr+":"+entryDateWeekNbr:
+							self._add_ing_start_mission(content["archive"]["INGs"][ing], i)
+							self._add_ing_stop_mission(content["archive"]["INGs"][ing], i)
+
 
 	def on_business_ingStartMission(self):
-		self.diag_business_startMission = Diag_business_ING_startMission("./sources/views/ing_start_mission.ui", self.business_Ing_selected, self.database)
+		self.diag_business_startMission = Diag_business_ING_startMission(MainWindow.__PATH_STARTMISSION_UI, self.business_Ing_selected, self.database)
 		self.update_business_ing_table()
 
 	def on_business_ingStopMission(self):
-		self.diag_business_stopMission = Diag_business_ING_stopMission("./sources/views/ing_stop_mission.ui", self.business_Ing_selected, self.database)
+		self.diag_business_stopMission = Diag_business_ING_stopMission(MainWindow.__PATH_STOPMISSION_UI, self.business_Ing_selected, self.database)
 		self.update_business_ing_table()
 
 	def on_business_manager_selected(self):
@@ -618,11 +694,11 @@ class MainWindow(QtWidgets.QMainWindow):
 			for ingInBu in content["BUs"][selectedBU]["INGs"]:
 				ing = ING.load(self.database, ingInBu)
 				self.business_Ing_list_model.appendRow(QtGui.QStandardItem(ingInBu))
-			return
-		for ingInBu in content["BUs"][selectedBU]["INGs"]:
-			ing = ING.load(self.database, ingInBu)
-			if ing.getManagerName() == selectedMGR:
-				self.business_Ing_list_model.appendRow(QtGui.QStandardItem(ingInBu))
+		else:
+			for ingInBu in content["BUs"][selectedBU]["INGs"]:
+				ing = ING.load(self.database, ingInBu)
+				if ing.getManagerName() == selectedMGR:
+					self.business_Ing_list_model.appendRow(QtGui.QStandardItem(ingInBu))
 		self.update_business_ing_table()
 
 
