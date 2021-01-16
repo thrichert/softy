@@ -67,6 +67,18 @@ class Diag_addBU_Window(QtWidgets.QDialog):
 						name = self.IAs_checkBox[i].text()
 						ia = IngAffaire.load(database, name)
 						ia.setBu(self.BuNameText)
+						# auto add managed ing into this bu
+						# if ia.isManagerIA():
+						# 	for managedIA in ia.whoIsManaged("IAs"):
+						# 		mIa = IngAffaire.load(database, managedIA)
+						# 		mIa.setBu(self.BuNameText)
+						# 		mIa.save()
+
+						# if ia.isManagerING():
+						# 	for managedING in ia.whoIsManaged("INGs"):
+						# 		mIng = ING.load(database, managedING)
+						# 		mIng.setBu(self.BuNameText)
+						# 		mIng.save()
 						ia.save()
 						nbChecked += 1
 				for i in range(len(self.INGs_checkBox)):
@@ -74,6 +86,7 @@ class Diag_addBU_Window(QtWidgets.QDialog):
 						name = self.INGs_checkBox[i].text()
 						ing = ING.load(database, name)
 						ing.setBu(self.BuNameText)
+						# auto add manager in Bu ?
 						ing.save()
 						nbChecked += 1
 				if nbChecked == 0:
