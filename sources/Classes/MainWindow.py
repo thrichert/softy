@@ -259,28 +259,18 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.show()
 
 	def _mainViewUpdate(self):
-		print ("mainViewUpdate")
 		self.business_BuSelector.setCurrentIndex(0)
-
 		self.update_activity_IAMGR_list()
 		self.on_business_BU_selected()
-
 		self.update_business_ing_table()
 
 	def on_addNew_BU(self):
-		print ("on_addNew_BU [start] - business_BuSelector count = ", self.business_BuSelector.count())
-		print ("on_addNew_BU [start] - selectedBu item Data (0) = ", self.business_BuSelector.itemData(0))
-
 		self.add_BU_Diag = Diag_addBU_Window(MainWindow.__PATH_ADDBU_UI, self.database)
 		if (self.add_BU_Diag.added):
 			self.BUs_model.appendRow(QtGui.QStandardItem(self.add_BU_Diag.BuNameText))
 			self.addNew_IA.setEnabled(True)
 			self.addNew_ING.setEnabled(True)
-		print ("on_addNew_BU [end] - business_BuSelector count = ", self.business_BuSelector.count())
-
 		self.business_BuSelector.setCurrentIndex(0)
-		print ("on_addNew_BU [end] - selectedBu currentText = ", self.business_BuSelector.currentText())
-
 
 	def on_addNew_IA(self):
 		self.add_IA_Diag = Diag_addIA_Window(MainWindow.__PATH_ADDIA_UI, self.database)
@@ -298,7 +288,6 @@ class MainWindow(QtWidgets.QMainWindow):
 		if self.add_ING_Diag.userInputCheck:
 			self.INGs_model.appendRow(QtGui.QStandardItem(self.add_ING_Diag.userNameText))
 		self.update_business_ing_table()
-		#self.on_business_BU_selected()
 
 	def on_remove_Ing(self):
 		res = Diag_delete_ing_ia(MainWindow.__PATH_DELUSER_UI, User._ING, self.ingSelected[0].data(), self.database)
@@ -315,9 +304,6 @@ class MainWindow(QtWidgets.QMainWindow):
 		if self.IAs_model.rowCount() == 0:
 			self.remove_IA.setEnabled(False)
 	def on_remove_BU(self):
-		print ("on_remove_BU [start] - selectedBu item Data (0) = ", self.business_BuSelector.itemData(0))
-		print ("on_remove_BU [start] - selectedBu count = ", self.business_BuSelector.count())
-
 		content = self.database.getContent()
 		buText = self.buSelected[0].data()
 		if buText != None:
@@ -342,8 +328,6 @@ class MainWindow(QtWidgets.QMainWindow):
 				self.addNew_IA.setEnabled(False)
 				self.addNew_ING.setEnabled(False)
 			self.business_BuSelector.setCurrentIndex(0)
-			print ("on_remove_BU [end] - selectedBu item Data (0) = ", self.business_BuSelector.itemData(0))
-			print ("on_remove_BU [end] - selectedBu count = ", self.business_BuSelector.count())
 
 
 	def update_activity_tableView(self, data, IA_name, week_year):
@@ -493,14 +477,12 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.ingStopMission.setEnabled(False)
 
 	def update_business_ing_table(self):
-		print ("update_business_ing_table - in")
 		if self.business_ing_table_model != None:
 			self.business_ing_table_model.clear()
 		self.business_ing_table_model = self.init_business_table()
 		self.populate_ing_business_ingIO()
 		self.populate_ing_business_MissionIO()
 		self.business_ing_table.setModel(self.business_ing_table_model)
-		print ("update_business_ing_table - out")
 
 	def _add_ing_enter_ingIO(self, ingData, rowIndex):
 		#	get previous data in cell
@@ -535,11 +517,8 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.business_ing_table_model.setItem(rowIndex, 3,  QtGui.QStandardItem(str(totalNewIng)))
 
 	def populate_ing_business_ingIO(self):
-		print ("populate_ing_business_ingIO - in ")
-
 		content = self.database.getContent()
 		currentBU = self.business_BuSelector.currentText()
-		print ("populate_ing_business_ingIO - currentBu = ", currentBU)
 		for ing in content["INGs"]:
 			if any(bu == currentBU for bu in content["INGs"][ing]["BU"]):
 				entryDate = QtCore.QDate.fromString(content['INGs'][ing]['entryDate'], "dd.MM.yyyy")
@@ -565,7 +544,6 @@ class MainWindow(QtWidgets.QMainWindow):
 						self._add_ing_enter_ingIO(content['archive']["INGs"][ing], i)
 					if currentRowVerticalHeader == exitDateYearNbr+":"+exitDateWeekNbr: # and currentYear == exitDateYearNbr:
 						self._add_ing_exit_ingIO(content['archive']["INGs"][ing], i)
-		print ("populate_ing_business_ingIO - out ")
 
 	def _add_ing_start_mission(self, ingData, rowIndex):
 		#	get previous data in cell
