@@ -57,19 +57,6 @@ class ING(User):
 	def getStateKey(self):
 		return list(ING.STATES.values()).index(self.__profile["state"])
 
-	def setManagerID(self, managerID):
-		self.managerID = managerID
-		self.__profile["managerID"] = managerID
-
-	def setManagerName(self, managerName):
-		self.manager = managerName
-		self.__profile["manager"] = managerName
-
-	def getManagerName(self):
-		return self.__profile["manager"]
-
-	def getManagerID(self):
-		return self.__profile["managerID"]
 
 	def setCurrentClient(self, clientName):
 		self.current_client = clientName
@@ -95,12 +82,12 @@ class ING(User):
 	def saveCurrentMission(self, missionStop=None):
 		l = len(self.__profile["prev_mission"])
 		if missionStop == None:
-			self.__profile["prev_mission"][l] = {
+			self.__profile["prev_mission"][str(l)] = {
 				"mission_Start":	self.getMissionStart(),
 				"mission_Stop":		self.getMissionStop(),
 				"client":			self.getCurrentClient()}
 		else:
-			self.__profile["prev_mission"][l] = {
+			self.__profile["prev_mission"][str(l)] = {
 				"mission_Start":	self.getMissionStart(),
 				"mission_Stop":		missionStop,
 				"client":			self.getCurrentClient()}
