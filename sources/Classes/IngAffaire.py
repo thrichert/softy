@@ -69,7 +69,6 @@ class IngAffaire(User):
 		self.setName(name)
 		self.role = None
 		self.bu = None
-		self.manager = None
 
 		if idx == None:
 			self.__profile["activities"] = {}
@@ -78,39 +77,6 @@ class IngAffaire(User):
 		self.__profile["prev_perf"] = {
 			"txTransfo":{},
 			"avgPerf":{}}
-		self.inChargeOf = {"IAs":[],"INGs":[]}
-
-	def putInChargeOf(self, name, usertype):
-		self.inChargeOf[usertype].append(name)
-		self.__profile["inChargeOf"] = self.inChargeOf
-
-	def isManagerIA(self):
-		if not "inChargeOf" in self.__profile.keys():
-			return False
-		if len(self.__profile["inChargeOf"]["IAs"]) > 0:
-			return True
-		return False
-
-	def isManagerING(self):
-		if not "inChargeOf" in self.__profile.keys():
-			return False
-		if len(self.__profile["inChargeOf"]["INGs"]) > 0:
-			return True
-		return False
-
-	def setManagerID(self, managerID):
-		self.managerID = managerID
-		self.__profile["managerID"] = managerID
-
-	def getManagerID(self):
-		return self.__profile["managerID"]
-
-	def setManagerName(self, managerName):
-		self.manager = managerName
-		self.__profile["manager"] = managerName
-
-	def getManagerName(self):
-		return self.__profile["manager"]
 
 	def setRole(self, role):
 		if role in self.ROLES.keys():
