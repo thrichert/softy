@@ -1,0 +1,15 @@
+#################################
+#		Release Note			#
+#		Softy					#
+#		by Thomas Richert		#
+#################################
+> maintainer : richert.thomas@gmail.com
+
+V0.0.0 (16/01/2021):
+> first release since 11/12/2021 meeting
+ - Mainly a test to try the pynstaller onefile exe production
+ - bug fixes in AddBU, AddIng, AddIA, Delete
+ - BUSINESS : show previous missions
+ - New Features :
+ 	> ACTIVITY : display IA list view according to manager
+ 	> BUSINESS : display ING list view according to manager
