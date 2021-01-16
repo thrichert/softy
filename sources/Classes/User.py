@@ -40,8 +40,13 @@ class User(object):
 						"name"	:		None,
 						"entryDate" : 	None,
 						"exitDate"	:	None,
+						"manager":		None,
+						"managerID":	None,
 						"BU"	:		[]
 					}
+		if userType == User._USERTYPE[User._IA]:
+			self.inChargeOf = {"IAs":[],"INGs":[]}
+
 		if idx == None:
 			dictKeys = [int(k) for k in self.__dbContent[userType].keys()]
 			archiveDictKeys = [int(k) for k in self.__dbContent["archive"][userType].keys()]
@@ -94,6 +99,52 @@ class User(object):
 		if bu in self.__profile["BU"]:
 			self.__profile["BU"].pop(self.__profile["BU"].index(bu))
 
+	def removeFromInCharge(self, name, usertype):
+		if self.__profile["type"] == User._USERTYPE[User._IA]:
+			if not "inChargeOf" in self.__profile.keys():
+				return
+			self.__profile["inChargeOf"][usertype].pop(self.__profile["inChargeOf"][usertype].index(name))
+
+
+	def setManagerID(self, managerID):
+		self.__profile["managerID"] = managerID
+
+	def setManagerName(self, managerName):
+		self.__profile["manager"] = managerName
+
+	def getManagerName(self):
+		return self.__profile["manager"]
+
+	def getManagerID(self):
+		return self.__profile["managerID"]
+
+	def putInChargeOf(self, name, usertype):
+		if self.__profile["type"] == User._USERTYPE[User._IA]:
+			self.inChargeOf[usertype].append(name)
+			self.__profile["inChargeOf"] = self.inChargeOf
+
+	def isManagerIA(self):
+		if self.__profile["type"] == User._USERTYPE[User._IA]:
+			if not "inChargeOf" in self.__profile.keys():
+				return False
+			if self.__profile["inChargeOf"]["IAs"] != []:
+				return True
+		return False
+
+	def isManagerING(self):
+		if self.__profile["type"] == User._USERTYPE[User._IA]:
+			if not "inChargeOf" in self.__profile.keys():
+				return False
+			if self.__profile["inChargeOf"]["INGs"] != []:
+				return True
+		return False
+
+	def whoIsManaged(self, usertype):
+		if self.__profile["type"] == User._USERTYPE[User._IA]:
+			if not "inChargeOf" in self.__profile.keys():
+				return []
+		return self.__profile["inChargeOf"][usertype]
+
 	def save(self):
 		currentDbContent = self.__database.getContent()
 		currentDbContent[self.__profile["type"]][str(self.__profile["idx"])] = self.__profile
@@ -125,12 +176,42 @@ class User(object):
 			currentDbContent["BUs"][bu][t].pop(currentDbContent["BUs"][bu][t].index(self.__profile["name"]))
 		# remove from valid list
 		currentDbContent[t].pop(i)
-
 		self.__database.write(currentDbContent)
 
 	def delete(self, exitDate, motif):
 		self.setExitDate(exitDate)
+		# update managed ing and ia
+		if self.isManagerIA():
+			for ia in self.__profile["inChargeOf"]["IAs"]:
+				managedIa = User.load(self.__database, ia, User._USERTYPE[User._IA])
+				if managedIa != None:
+					managedIa.setManagerID(None)
+					managedIa.setManagerName(None)
+					managedIa.save()
+		if self.isManagerING():
+			for ing in self.__profile["inChargeOf"]["INGs"]:
+				managedIng = User.load(self.__database, User._USERTYPE[User._ING], ing)
+				if managedIng != None:
+					managedIng.setManagerID(None)
+					managedIng.setManagerName(None)
+					managedIng.save()
+		if self.__profile["manager"] != None:
+				manager = User.load(self.__database, User._USERTYPE[User._IA], self.__profile["manager"])
+				if manager != None:
+					manager.removeFromInCharge(self.__profile["name"], self.__profile["type"])
+					manager.save()
 		self.toArchive(motif)
 
 	def __str__(self):
 		return json.dumps(self.__profile, sort_keys=True, indent=4)
+
+	@staticmethod
+	def load(database, userType, name):
+		currentDbContent = database.getContent()
+		for i, usr in currentDbContent[userType].items():
+			if usr['name'] == name:
+				return User(database, userType, usr["idx"])
+		for i, usr in currentDbContent["archive"][userType].items():
+			if usr['name'] == name:
+				return User(database, userType, usr["idx"])
+		return None
