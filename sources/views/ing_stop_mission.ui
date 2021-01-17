@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>359</width>
-    <height>117</height>
+    <height>146</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,14 +24,14 @@
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <layout class="QFormLayout" name="formLayout">
-          <item row="0" column="0">
+          <item row="1" column="0">
            <widget class="QLabel" name="label_2">
             <property name="text">
              <string>mission stop</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="1" column="1">
            <widget class="QDateEdit" name="stopDate">
             <property name="dateTime">
              <datetime>
@@ -45,15 +45,25 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="2" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
              <string>state</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="2" column="1">
            <widget class="QComboBox" name="ing_State_comboBox"/>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="stopType"/>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Type</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
