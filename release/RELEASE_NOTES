@@ -5,6 +5,12 @@
 #################################
 > maintainer : richert.thomas@gmail.com
 
+
+V0.0.2 (18/01/2021):
+> bug hot fix:
+ - console should not be present anymore
+ - path has been changed, should fix the db loss...
+
 V0.0.1 (17/01/2021):
 > bug fix:
  - change stop mission behavior : add type (stop / prolongation)
