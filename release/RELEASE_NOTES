@@ -5,6 +5,15 @@
 #################################
 > maintainer : richert.thomas@gmail.com
 
+V0.0.1 (17/01/2021):
+> bug fix:
+ - change stop mission behavior : add type (stop / prolongation)
+	stop : will save mission in prev_mission and put the ing in 'inter-contrat' state
+	prolongation : change current mission stop date only and leave ing in 'in mission' state
+> New:
+ -  add stats in Business Totaux : total ing in BU / total ing in Mission and Ratio
+
+
 V0.0.0 (16/01/2021):
 > first release since 11/12/2021 meeting
  - Mainly a test to try the pynstaller onefile exe production
