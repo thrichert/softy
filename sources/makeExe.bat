@@ -1,4 +1,3 @@
-
 @REM ---------- Define constants
 @set "RTYPE_Ma=Ma"
 @set "RTYPE_Mi=Mi"
@@ -51,6 +50,5 @@
 	@echo Patch			Pa
 	@REM ---------- Go in Source folder
 	@cd ../sources
-
 )
 
