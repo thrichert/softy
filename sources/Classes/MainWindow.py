@@ -26,13 +26,13 @@ class MainWindow(QtWidgets.QMainWindow):
 	Class that handle the main window
 	"""
 
-	__PATH_MAINWINDOW_UI	= resource_path("./views/mainWindow.ui")
-	__PATH_ADDBU_UI			= resource_path("./views/add_BU_Diag.ui")
-	__PATH_ADDIA_UI			= resource_path("./views/add_IA_Diag.ui")
-	__PATH_ADDING_UI		= resource_path("./views/add_ING_Diag.ui")
-	__PATH_DELUSER_UI		= resource_path("./Views/deleteING_IA.ui")
-	__PATH_STARTMISSION_UI	= resource_path("./views/ing_start_mission.ui")
-	__PATH_STOPMISSION_UI	= resource_path("./views/ing_stop_mission.ui")
+	__PATH_MAINWINDOW_UI	= resource_path("views\\mainWindow.ui")
+	__PATH_ADDBU_UI			= resource_path("views\\add_BU_Diag.ui")
+	__PATH_ADDIA_UI			= resource_path("views\\add_IA_Diag.ui")
+	__PATH_ADDING_UI		= resource_path("views\\add_ING_Diag.ui")
+	__PATH_DELUSER_UI		= resource_path("Views\\deleteING_IA.ui")
+	__PATH_STARTMISSION_UI	= resource_path("views\\ing_start_mission.ui")
+	__PATH_STOPMISSION_UI	= resource_path("views\\ing_stop_mission.ui")
 
 
 	def __init__(self, database):
