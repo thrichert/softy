@@ -236,6 +236,12 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.ingStopMission = self.findChild(QtWidgets.QPushButton, "ingStopMission")
 		self.ingStopMission.clicked.connect(self.on_business_ingStopMission)
 
+		# get totaux text label
+		self.business_tot_IngInBU = self.findChild(QtWidgets.QLabel, "IngInBU")
+		self.business_tot_IngInMission = self.findChild(QtWidgets.QLabel, "IngInMission")
+		self.business_tot_IngActivityRatio = self.findChild(QtWidgets.QLabel, "IngActivityRatio")
+		self.update_business_textLabel()
+
 		# setup Business Mission & ingenieur Monthly QtableView
 		self.update_business_ing_table()
 
@@ -281,7 +287,6 @@ class MainWindow(QtWidgets.QMainWindow):
 				QtGui.QStandardItem(ia.getRole()),
 				QtGui.QStandardItem(ia.getBu())]
 			self.IAs_model.appendRow(r)
-
 
 	def on_addNew_ING(self):
 		self.add_ING_Diag = Diag_addING_Window(MainWindow.__PATH_ADDING_UI, self.database)
@@ -483,6 +488,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.populate_ing_business_ingIO()
 		self.populate_ing_business_MissionIO()
 		self.business_ing_table.setModel(self.business_ing_table_model)
+		self.update_business_textLabel()
+
 
 	def _add_ing_enter_ingIO(self, ingData, rowIndex):
 		#	get previous data in cell
@@ -679,7 +686,6 @@ class MainWindow(QtWidgets.QMainWindow):
 					self.business_Ing_list_model.appendRow(QtGui.QStandardItem(ingInBu))
 		self.update_business_ing_table()
 
-
 	def on_business_BU_selected(self):
 		content = self.database.getContent()
 		selectedBU = self.business_BuSelector.currentText()
@@ -713,6 +719,23 @@ class MainWindow(QtWidgets.QMainWindow):
 		# populate table
 		self.populate_ing_business_MissionIO()
 		self.populate_ing_business_ingIO()
+
+	def update_business_textLabel(self):
+		content = self.database.getContent()
+		curBu = self.business_BuSelector.currentText()
+		ingInBu = len(content["BUs"][curBu]["INGs"])
+		ingInMission = 0
+		for ing in content["BUs"][curBu]["INGs"]:
+			ing = ING.load(self.database, ing)
+			if ing.getState() == ING.STATES[ING.ING_STATE_MI]:
+				ingInMission += 1
+		if ingInBu != 0:
+			rate = ingInMission / ingInBu * 100
+		else:
+			rate = 0
+		self.business_tot_IngInBU.setText(str(ingInBu))
+		self.business_tot_IngInMission.setText(str(ingInMission))
+		self.business_tot_IngActivityRatio.setText(str(rate)+"%")
 
 	def verifyData(self):
 		pass
