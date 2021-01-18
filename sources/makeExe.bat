@@ -2,6 +2,7 @@
 @set "RTYPE_Ma=Ma"
 @set "RTYPE_Mi=Mi"
 @set "RTYPE_Pa=Pa"
+@set "RTYPE_Te=Te"
 
 @REM ---------- Go in Release folder
 @cd ..
@@ -43,11 +44,16 @@
 	@pyinstaller.exe --onefile .\main.spec
 	@COPY .\dist\main.exe ..\release\v%major%.%minor%.%nPatch%\softy_%major%.%minor%.%nPatch%.exe
 
-) else (
+) else if "%RTYPE%" EQU "%RTYPE_Te%" (
+	@echo selected : %RTYPE%
+	@pyinstaller.exe --onefile .\main.spec
+
+)else (
 	@echo Error - unvalid parameters
 	@echo Major			Ma
 	@echo Minor			Mi
 	@echo Patch			Pa
+	@echo Test			Te		Use for Debug - does not copy in release
 	@REM ---------- Go in Source folder
 	@cd ../sources
 )
