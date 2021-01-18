@@ -723,7 +723,6 @@ class MainWindow(QtWidgets.QMainWindow):
 	def update_business_textLabel(self):
 		content = self.database.getContent()
 		curBu = self.business_BuSelector.currentText()
-		print("curBu :", curBu)
 		if curBu == '' or curBu == None:
 			self.business_tot_IngInBU.setText("/")
 			self.business_tot_IngInMission.setText("/")
