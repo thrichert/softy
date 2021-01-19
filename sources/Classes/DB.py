@@ -8,12 +8,13 @@ def resource_path(relative_path):
 	except Exception:
 		base_path = os.path.abspath(".")
 
+	print(base_path)
 	return os.path.join(base_path, relative_path)
 
 class DB(object):
 
-	# __PATH_DIR_DB	= resource_path("./DataBase/")
-	# __PATH_BD		= resource_path("./DataBase/db.json")
+	# __PATH_DIR_DB	= resource_path("DataBase\\")
+	# __PATH_BD		= resource_path("DataBase\\db.json")
 
 	__PATH_DIR_DB	=	"\\DataBase\\"
 	__PATH_BD		=	"\\DataBase\\db.json"
