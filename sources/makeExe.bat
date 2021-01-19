@@ -46,6 +46,7 @@
 
 ) else if "%RTYPE%" EQU "%RTYPE_Te%" (
 	@echo selected : %RTYPE%
+	@cd ../sources
 	@pyinstaller.exe --onefile .\main.spec
 
 )else (
