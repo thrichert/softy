@@ -7,6 +7,7 @@ from Classes.Diag_business_ING_startMission import Diag_business_ING_startMissio
 from Classes.Diag_business_ING_stopMission import Diag_business_ING_stopMission
 from Classes.Diag_delete_ing_ia import Diag_delete_ing_ia
 from Classes.Diag_addBU_Window import Diag_addBU_Window
+from Classes.Diag_editING_Window import Diag_editING_Window
 from Classes.User import User
 from Classes.IngAffaire import IngAffaire
 from Classes.ING import ING
@@ -33,7 +34,7 @@ class MainWindow(QtWidgets.QMainWindow):
 	__PATH_DELUSER_UI		= resource_path("Views\\deleteING_IA.ui")
 	__PATH_STARTMISSION_UI	= resource_path("views\\ing_start_mission.ui")
 	__PATH_STOPMISSION_UI	= resource_path("views\\ing_stop_mission.ui")
-
+	__PATH_EDITING_UI		= resource_path("views\\edit_ING_Diag.ui")
 
 	def __init__(self, database):
 		super(MainWindow, self).__init__()
@@ -91,6 +92,10 @@ class MainWindow(QtWidgets.QMainWindow):
 		if len(self.dbContent["BUs"]) != 0:
 			self.addNew_IA.setEnabled(True)
 			self.addNew_ING.setEnabled(True)
+
+		self.edit_ING = self.findChild(QtWidgets.QPushButton, "edit_ing_pushbutton")
+		self.edit_ING.setEnabled(False)
+		self.edit_ING.clicked.connect(self.on_edit_ing)
 
 		self.remove_ING = self.findChild(QtWidgets.QPushButton, "delete_ing_pushbutton")
 		self.remove_ING.clicked.connect(self.on_remove_Ing)
@@ -294,6 +299,10 @@ class MainWindow(QtWidgets.QMainWindow):
 			self.INGs_model.appendRow(QtGui.QStandardItem(self.add_ING_Diag.userNameText))
 		self.update_business_ing_table()
 
+	def on_edit_ing(self):
+		self.edit_ing_Diag = Diag_editING_Window(MainWindow.__PATH_EDITING_UI, self.ingSelected[0].data(), self.database)
+		self.update_business_ing_table()
+
 	def on_remove_Ing(self):
 		res = Diag_delete_ing_ia(MainWindow.__PATH_DELUSER_UI, User._ING, self.ingSelected[0].data(), self.database)
 		if (res.deleted):
@@ -348,6 +357,7 @@ class MainWindow(QtWidgets.QMainWindow):
 	def on_Ings_list_selected(self):
 		self.ingSelected = self.INGs_list.selectionModel().selectedRows()
 		self.remove_ING.setEnabled(True)
+		self.edit_ING.setEnabled(True)
 
 	def on_IAs_list_selected(self):
 		self.iaSelected = self.IAs_list.selectionModel().selectedRows()
