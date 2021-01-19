@@ -141,7 +141,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_6">
+            <widget class="QPushButton" name="edit_ing_pushbutton">
              <property name="enabled">
               <bool>false</bool>
              </property>
@@ -646,7 +646,7 @@
             <property name="title">
              <string>totaux</string>
             </property>
-            <widget class="QWidget" name="">
+            <widget class="QWidget" name="layoutWidget">
              <property name="geometry">
               <rect>
                <x>10</x>
