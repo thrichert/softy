@@ -11,15 +11,7 @@ from Classes.Diag_editING_Window import Diag_editING_Window
 from Classes.User import User
 from Classes.IngAffaire import IngAffaire
 from Classes.ING import ING
-
-def resource_path(relative_path):
-	try:
-		# PyInstaller creates a temp folder and stores path in _MEIPASS
-		base_path = sys._MEIPASS
-	except Exception:
-		base_path = os.path.abspath(".")
-
-	return os.path.join(base_path, relative_path)
+from Classes.utils import resource_path
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -27,14 +19,14 @@ class MainWindow(QtWidgets.QMainWindow):
 	Class that handle the main window
 	"""
 
-	__PATH_MAINWINDOW_UI	= resource_path("views\\mainWindow.ui")
-	__PATH_ADDBU_UI			= resource_path("views\\add_BU_Diag.ui")
-	__PATH_ADDIA_UI			= resource_path("views\\add_IA_Diag.ui")
-	__PATH_ADDING_UI		= resource_path("views\\add_ING_Diag.ui")
-	__PATH_DELUSER_UI		= resource_path("Views\\deleteING_IA.ui")
-	__PATH_STARTMISSION_UI	= resource_path("views\\ing_start_mission.ui")
-	__PATH_STOPMISSION_UI	= resource_path("views\\ing_stop_mission.ui")
-	__PATH_EDITING_UI		= resource_path("views\\edit_ING_Diag.ui")
+	__PATH_MAINWINDOW_UI	= resource_path("views\\mainWindow.ui", True)
+	__PATH_ADDBU_UI			= resource_path("views\\add_BU_Diag.ui", True)
+	__PATH_ADDIA_UI			= resource_path("views\\add_IA_Diag.ui", True)
+	__PATH_ADDING_UI		= resource_path("views\\add_ING_Diag.ui", True)
+	__PATH_DELUSER_UI		= resource_path("Views\\deleteING_IA.ui", True)
+	__PATH_STARTMISSION_UI	= resource_path("views\\ing_start_mission.ui", True)
+	__PATH_STOPMISSION_UI	= resource_path("views\\ing_stop_mission.ui", True)
+	__PATH_EDITING_UI		= resource_path("views\\edit_ING_Diag.ui", True)
 
 	def __init__(self, database):
 		super(MainWindow, self).__init__()
@@ -357,7 +349,7 @@ class MainWindow(QtWidgets.QMainWindow):
 	def on_Ings_list_selected(self):
 		self.ingSelected = self.INGs_list.selectionModel().selectedRows()
 		self.remove_ING.setEnabled(True)
-		self.edit_ING.setEnabled(True)
+	#	self.edit_ING.setEnabled(True)
 
 	def on_IAs_list_selected(self):
 		self.iaSelected = self.IAs_list.selectionModel().selectedRows()

@@ -1,23 +1,14 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import sys, os, json, platform, time
-
-def resource_path(relative_path):
-	try:
-		# PyInstaller creates a temp folder and stores path in _MEIPASS
-		base_path = sys._MEIPASS
-	except Exception:
-		base_path = os.path.abspath(".")
-
-	print(base_path)
-	return os.path.join(base_path, relative_path)
+from Classes.utils import resource_path
 
 class DB(object):
 
 	# __PATH_DIR_DB	= resource_path("DataBase\\")
 	# __PATH_BD		= resource_path("DataBase\\db.json")
 
-	__PATH_DIR_DB	=	"\\DataBase\\"
-	__PATH_BD		=	"\\DataBase\\db.json"
+	__PATH_DIR_DB	=	resource_path(".\\DataBase\\", False)
+	__PATH_BD		=	resource_path(".\\DataBase\\db.json", False)
 
 	def __init__(self):
 		self.path = DB.__PATH_BD
