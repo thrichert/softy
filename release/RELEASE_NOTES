@@ -5,6 +5,8 @@
 #################################
 > maintainer : richert.thomas@gmail.com
 
+v0.0.3 (01/02/2021):
+> fix DB path : create DataBase folder and files near the original .exe path, ./DataBase
 
 V0.0.2 (18/01/2021):
 > bug hot fix:
