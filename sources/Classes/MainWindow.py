@@ -349,7 +349,7 @@ class MainWindow(QtWidgets.QMainWindow):
 	def on_Ings_list_selected(self):
 		self.ingSelected = self.INGs_list.selectionModel().selectedRows()
 		self.remove_ING.setEnabled(True)
-	#	self.edit_ING.setEnabled(True)
+		self.edit_ING.setEnabled(True)
 
 	def on_IAs_list_selected(self):
 		self.iaSelected = self.IAs_list.selectionModel().selectedRows()

@@ -16,7 +16,7 @@ class Diag_editING_Window(QtWidgets.QDialog):
 		self.__dbContent = database.getContent()
 		# get selected ing
 		self.ing = ING.load(database, selectedIng)
-
+		self.archiveCurMission = False
 		###################################
 		# get elements from ui
 		###################################
@@ -38,6 +38,14 @@ class Diag_editING_Window(QtWidgets.QDialog):
 
 		self.totalMissionLabel = self.findChild(QtWidgets.QLabel, "totalMissionLabel")
 		self.longestMissionLabel = self.findChild(QtWidgets.QLabel, "longestMissionLabel")
+		self.userInputs = [	self.userName,
+							self.entryDate,
+							self.scrollArea_Bus,
+							self.scrollArea_IAs,
+							self.userState,
+							self.curMissionStartDate,
+							self.curMissionStopDate,
+							self.curClientName]
 		###################################
 		# setup element
 		###################################
@@ -111,7 +119,7 @@ class Diag_editING_Window(QtWidgets.QDialog):
 			self.scrollAreaLayout_prevMission.addWidget(self.prevMission_checkBox[i])
 			i += 1
 
-		# prompt metrics
+		# prompt metrics (TODO add in class metrics )
 		if self.ing.getState() == ING.STATES[ING.ING_STATE_MI]:
 			self.totalMissionLabel.setText(str(len(prevMissions) + 1))
 		else:
@@ -122,9 +130,58 @@ class Diag_editING_Window(QtWidgets.QDialog):
 			startMiDate = startMiDate.addMonths(1)
 			nMonth += 1
 		self.longestMissionLabel.setText("{Mo} Months".format(Mo=str(nMonth)))
-		resp = self.exec_()
-		if resp == QtWidgets.QDialog.Accepted:
-			print ("CheckModif")
-			print ("doModif")
-		else:
-			print("Nop")
+
+		userInputsCheck = False
+		while not userInputsCheck:
+			resp = self.exec_()
+			if resp == QtWidgets.QDialog.Accepted:
+				userInputsCheck = self.checkInputs()
+				if userInputsCheck:
+					print ("doModif")
+			else:
+				break
+
+	def checkInputs(self):
+		for ui in self.userInputs:
+			if isinstance(ui, QtWidgets.QLineEdit):
+				if ui.text() == "":
+					self._sendAlert("error - " + ui.objectName() + " cannot be empty")
+					return False
+				if ui.objectName() == "name" and ui.text() in ING.getNames(self.__database):
+					self._sendAlert("error - " + ui.text() + " already exist")
+					return False
+			elif isinstance(ui, QtWidgets.QScrollArea):
+				if ui.objectName() == "scrollArea_Bus" and not self._checkScrollAreaCheckBox(ui):
+						self._sendAlert("Warning - " + self.userName.text() + " does not belong to a BU")
+				elif ui.objectName() == "scrollArea_IAs" and not self._checkScrollAreaCheckBox(ui):
+						self._sendAlert("Warning - " + self.userName.text() + " does not have any manager")
+			elif isinstance(ui, QtWidgets.QDateEdit):
+				if (ui.objectName() == "curMissionStartDate" or ui.objectName() == "curMissionStoptDate") and \
+					self.curMissionStartDate > self.curMissionStopDate:
+						self._sendAlert("error - Stop mission happens before Start mission")
+						return False
+				elif ui.objectName() == "curMissionStartDate" and self.curMissionStopDate < QtCore.QDate.currentDate():
+						self._sendAlert('Warning - Mission stop already passed -\nMission registered as archived\n{name} state stays {state}'.format(name=self.userName.text(), state=self.ing.getState()))
+						self.archiveCurMission = True
+						self.archiveCurMissionNextState = self.ing.getStateKey()
+			elif isinstance(ui, QtWidgets.QComboBox):
+				if ui.objectName() == "ing_State_comboBox":
+					if (ui.currentText() == ING.STATES[ING.ING_STATE_AM] or \
+						ui.currentText() == ING.STATES[ING.ING_STATE_IC] ) and \
+						self.ing.getState() == ING.STATES[ING.ING_STATE_MI]:
+						self._sendAlert("Warning - current mission is stopped and archived\n{name} is in {state}".format(name=self.userName.text(), state=ING.STATES[ING.ING_STATE_AM]))
+						self.archiveCurMission = True
+						self.archiveCurMissionNextState = ui.currentText()
+		return True
+
+	def _sendAlert(self, message):
+		alert = QtWidgets.QMessageBox()
+		alert.setText(message)
+		alert.exec_()
+
+	def _checkScrollAreaCheckBox(self, scrollArea):
+		# Check if At least on checkbox contained in the scrollarea is checked
+		for bu in scrollArea.widget().findChildren(QtWidgets.QCheckBox):
+			if bu.isChecked():
+				return True
+		return False

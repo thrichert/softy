@@ -62,8 +62,7 @@ class Diag_addIA_Window(QtWidgets.QDialog):
 
 		self._on_userRole_changed()
 
-		userInputsCheck = False # store condition to exit the loop in case of wrong input
-
+		userInputsCheck = False
 		while not userInputsCheck:
 			# run
 			resp = self.exec_()
